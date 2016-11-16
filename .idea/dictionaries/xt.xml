@@ -2,6 +2,7 @@
   <dictionary name="xt">
     <words>
       <w>lstm</w>
+      <w>nltk</w>
     </words>
   </dictionary>
 </component>

@@ -1,6 +1,8 @@
 # coding=utf8
 import jieba
 import re
+import nltk.data
+
 
 
 caps = u"([A-Z])"
@@ -9,6 +11,7 @@ suffixes = u"(Inc|Ltd|Jr|Sr|Co)"
 starters = u"(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
 acronyms = u"([A-Z][.][A-Z][.](?:[A-Z][.])?)"
 websites = u"[.](com|net|org|io|gov)"
+digits = u"([0-9])"
 
 
 def split_into_sentences(text):
@@ -21,6 +24,7 @@ def split_into_sentences(text):
     text = text.replace(u"\n", u" ")
     text = re.sub(prefixes, u"\\1<prd>", text)
     text = re.sub(websites, u"<prd>\\1", text)
+    text = re.sub(digits + u"[.]" + digits, u"\\1<prd>\\2", text)
     if u"Ph.D" in text:
         text = text.replace(u"Ph.D.", u"Ph<prd>D<prd>")
     text = re.sub(u"\s" + caps + u"[.] ", u" \\1<prd> ", text)
@@ -48,12 +52,19 @@ def split_into_sentences(text):
     return sentences
 
 
+nltk_sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+
+
+def split_into_sentences_by_nltk(text):
+    return nltk_sentence_tokenizer.tokenize(text)
+
+
 def tokenize(text):
     return [tok for tok in jieba.cut(text) if tok.isalnum()]
 
 
 def split_into_paragraph_sentence_token(text):
-    return [[tokenize(sentence) for sentence in split_into_sentences(paragraph)]
+    return [[tokenize(sentence) for sentence in split_into_sentences_by_nltk(paragraph)]
             for paragraph in text.splitlines() if paragraph.strip() != u'']
 
 
@@ -66,11 +77,11 @@ Authorities say Roper apparently failed to slow for traffic early Saturday and s
 
 def main():
     # print ([token for token in tokens])
-    print (split_into_sentences(TEXT))
-    print ([tokenize(sentence) for sentence in split_into_sentences(TEXT)])
+    print (split_into_sentences_by_nltk(TEXT))
+    print ([tokenize(sentence) for sentence in split_into_sentences_by_nltk(TEXT)])
     print (split_into_paragraph_sentence_token(TEXT))
     print (u'a\nb\n\nc'.splitlines())
-    print (split_into_sentences(u'sad\n Ph.D. is good'))
+    print (split_into_sentences_by_nltk(u'Mr. wang is good.'))
 
 
 if __name__ == '__main__':

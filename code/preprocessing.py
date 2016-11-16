@@ -11,7 +11,7 @@ def merge_nyt_to_single_file(nyt_path, output_path):
     from codecs import open
     count = 0
     fail_count = 0
-    line_pattern = re.compile(r'.*[a-zA-Z0-9]+.*', re.UNICODE)
+    line_pattern = re.compile(ur'.*[a-zA-Z0-9]+.*', re.UNICODE)
     with open(output_path, 'w', encoding='utf8') as out:
         for root, dirs, files in os.walk(nyt_path):
             for filename in files:
@@ -57,6 +57,7 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
             elif line == u'\n':
                 news_structure = nlp_utils.split_into_paragraph_sentence_token(title.strip() + u'.' + text)
                 out_file.write(u' '.join(tags) + u'\n')
+                statistic_file.write(title + url)
                 statistic_file.write(
                     u' '.join([unicode(len(news_structure))] + [unicode(len(para)) for para in news_structure]) + u'\n')
                 for para in news_structure:
@@ -84,7 +85,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
-    # structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
-    #                                     u'../data/nyt/structured_nyt.txt', u'../data/nyt/statistic.txt')
+    # main()
+    structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
+                                        u'../data/nyt/structured_nyt.txt', u'../data/nyt/statistic.txt')
     pass
