@@ -8,5 +8,4 @@ def get_embedding_layer(dict_size, embedding_dim):
 
 
 def lstm_model(nb_paragraph, nb_sentence, nb_words):
-    # this returns a tensor
     inputs = Input(shape=(None, None, None))

@@ -56,7 +56,8 @@ nltk_sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
 
 def split_into_sentences_by_nltk(text):
-    return nltk_sentence_tokenizer.tokenize(text)
+    sentences = nltk_sentence_tokenizer.tokenize(text)
+    assert len(sentences) > 0, u'split result: %s' % sentences
 
 
 def tokenize(text):

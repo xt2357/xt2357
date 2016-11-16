@@ -20,15 +20,21 @@ def merge_nyt_to_single_file(nyt_path, output_path):
                     content_path = os.path.join(root, filename[:-4] + u'txt')
                     try:
                         with open(info_path, encoding='utf8') as info, open(content_path, encoding='utf8') as content:
-                            out.write(info.readline().split(':')[-1])
-                            out.write(info.readline()[5:] + u'\n')
-                            paragraphs = [line for line in content.readlines() if line_pattern.match(line.strip())]
-                            out.writelines(paragraphs)
-                            out.write('\n')
+                            title = info.readline().split(':')[-1]
+                            assert line_pattern.match(title.strip()), u'%s, title: %s' % (info_path, title)
+                            url = info.readline()[5:] + u'\n'
+                            assert url.startswith(u'http'), u'%s, url: %s' % (info_path, url)
+                            paragraphs = [line.strip() for line in content.readlines()
+                                          if line_pattern.match(line.strip())]
+                            out.write(title.strip() + u'\n')
+                            out.write(url.strip() + u'\n')
+                            out.write(u'\n'.join(paragraphs))
+                            out.write(u'\n\n')
                         count += 1
                         if (count % 10000) == 0:
                             print (u"%dw news merged.." % (count / 10000))
-                    except:
+                    except BaseException, e:
+                        print (e.message)
                         fail_count += 1
                         print (u'file fail: %s' % content_path)
                         if (fail_count % 100) == 0:
@@ -38,6 +44,7 @@ def merge_nyt_to_single_file(nyt_path, output_path):
 
 def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, statistics_output_path):
     from codecs import open
+    done_count = 0
     sen_cnt, word_aver, word_min, word_max = 0, 0.0, sys.maxint, 0
     para_cnt, sen_aver, sen_min, sen_max = 0, 0.0, sys.maxint, 0
     news_cnt, para_aver, para_min, para_max = 0, 0.0, sys.maxint, 0
@@ -46,15 +53,16 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
             open(statistics_output_path, 'w', encoding='utf8') as statistic_file:
         title, url, text = u'', u'', u''
         tags = []
-        for line in news_file:
+        all_lines = news_file.readlines()
+        for line in all_lines:
             if title == u'':
                 title = line
             elif url == u'':
                 url = line
-                assert url.startswith(u'http')
+                assert url.startswith(u'http'), u'title: %s, url: %s' % (title, url)
                 tags = [seg for seg in url.split(u'/') if seg.isalpha()]
                 tags = [u'-'.join(tags[:i + 1]) for i in range(len(tags))]
-            elif line == u'\n':
+            elif line.strip() == u'':
                 news_structure = nlp_utils.split_into_paragraph_sentence_token(title.strip() + u'.' + text)
                 out_file.write(u' '.join(tags) + u'\n')
                 statistic_file.write(title + url)
@@ -74,6 +82,9 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
                     min(para_min, len(news_structure)), max(para_max, len(news_structure))
                 title, url, text = u'', u'', u''
                 tags = []
+                done_count += 1
+                if (done_count % 1000) == 0:
+                    print (u'%dk news done..' % (done_count / 1000))
             else:
                 text += line
         statistic_file.write(u'\n')
@@ -85,7 +96,7 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
     structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
                                         u'../data/nyt/structured_nyt.txt', u'../data/nyt/statistic.txt')
     pass
