@@ -3,6 +3,7 @@
     <words>
       <w>lstm</w>
       <w>nltk</w>
+      <w>softmax</w>
     </words>
   </dictionary>
 </component>

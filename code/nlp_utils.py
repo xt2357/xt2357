@@ -72,8 +72,12 @@ def tokenize(text):
     return [tok for tok in jieba.cut(text) if tok.isalnum()]
 
 
+sentence_pattern = re.compile(ur'.*[0-9A-Za-z]+.*', re.UNICODE)
+
+
 def split_into_paragraph_sentence_token(text):
-    return [[tokenize(sentence) for sentence in split_into_sentences_by_nltk(paragraph)]
+    return [[tokenize(sentence) for sentence in split_into_sentences_by_nltk(paragraph)
+             if sentence_pattern.match(sentence)]
             for paragraph in text.splitlines() if paragraph.strip() != u'']
 
 
