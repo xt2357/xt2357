@@ -91,7 +91,12 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
             else:
                 text += line
         statistic_file.write(u'\n')
-        statistic_file.write(u'%d %f\n%d %f\n%d %f\n' % (sen_cnt, word_aver, para_cnt, sen_aver, news_cnt, para_aver))
+        statistic_file.write(u'sentence cnt: %d, word average: %f, min: %d, max: %d\n'
+                             u'paragraph cnt: %d, sentence average: %f, min: %d, max: %d\n'
+                             u'news cnt: %d, paragraph average: %f, min: %d, max: %d\n' %
+                             (sen_cnt, word_aver, word_min, word_max,
+                              para_cnt, sen_aver, sen_min, sen_max,
+                              news_cnt, para_aver, para_min, para_max))
 
 
 def main():

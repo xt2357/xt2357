@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="4bfbfc10-965c-4b1c-8564-a5d62934ec28" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/code/nlp_utils.py" afterPath="$PROJECT_DIR$/code/nlp_utils.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/code/lstm_with_tag_relation.py" afterPath="$PROJECT_DIR$/code/lstm_with_tag_relation.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/code/preprocessing.py" afterPath="$PROJECT_DIR$/code/preprocessing.py" />
     </list>
     <ignored mask="*.rar" />
@@ -28,8 +28,8 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/xt2357$mess.coverage" NAME="mess Coverage Results" MODIFIED="1479354202729" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
-    <SUITE FILE_PATH="coverage/xt2357$lstm_with_tag_relation.coverage" NAME="lstm_with_tag_relation Coverage Results" MODIFIED="1479218079163" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
-    <SUITE FILE_PATH="coverage/xt2357$preprocessing.coverage" NAME="preprocessing Coverage Results" MODIFIED="1479355630444" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
+    <SUITE FILE_PATH="coverage/xt2357$lstm_with_tag_relation.coverage" NAME="lstm_with_tag_relation Coverage Results" MODIFIED="1479371182084" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
+    <SUITE FILE_PATH="coverage/xt2357$preprocessing.coverage" NAME="preprocessing Coverage Results" MODIFIED="1479369008954" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
     <SUITE FILE_PATH="coverage/xt2357$nlp_utils.coverage" NAME="nlp_utils Coverage Results" MODIFIED="1479354240162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
   </component>
   <component name="CreatePatchCommitExecutor">
@@ -63,11 +63,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="preprocessing.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="preprocessing.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/code/preprocessing.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-374">
-              <caret line="67" column="56" selection-start-line="67" selection-start-column="56" selection-end-line="67" selection-end-column="56" />
+            <state relative-caret-position="154">
+              <caret line="88" column="33" selection-start-line="88" selection-start-column="33" selection-end-line="88" selection-end-column="33" />
               <folding>
                 <element signature="e#14#32#0" expanded="true" />
               </folding>
@@ -75,18 +75,33 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="xt23577.pstat" pinned="false" current-in-tab="false">
-        <entry file="mock://C:\Users\xt\.PyCharm2016.2\system\snapshots\xt23577.pstat">
-          <provider selected="true" editor-type-id="profiler-session-editor">
-            <state />
+      <file leaf-file-name="lstm_with_tag_relation.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/code/lstm_with_tag_relation.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="355">
+              <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+              <folding>
+                <element signature="e#14#97#0" expanded="true" />
+              </folding>
+            </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="lstm_with_tag_relation.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/code/lstm_with_tag_relation.py">
+      <file leaf-file-name="topology.py" pinned="false" current-in-tab="false">
+        <entry file="file://C:/Anaconda2/Lib/site-packages/keras/engine/topology.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="220">
-              <caret line="10" column="44" selection-start-line="10" selection-start-column="44" selection-end-line="10" selection-end-column="44" />
+            <state relative-caret-position="213">
+              <caret line="476" column="26" selection-start-line="476" selection-start-column="26" selection-end-line="476" selection-end-column="26" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="wrappers.py" pinned="false" current-in-tab="false">
+        <entry file="file://C:/Anaconda2/Lib/site-packages/keras/layers/wrappers.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-734">
+              <caret line="88" column="8" selection-start-line="88" selection-start-column="8" selection-end-line="88" selection-end-column="8" />
               <folding />
             </state>
           </provider>
@@ -100,45 +115,6 @@
               <folding>
                 <element signature="e#14#23#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-        <entry file="file://C:/Anaconda2/Lib/site-packages/nltk/tokenize/__init__.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="110">
-              <caret line="93" column="26" selection-start-line="93" selection-start-column="26" selection-end-line="93" selection-end-column="58" />
-              <folding>
-                <element signature="e#2526#2565#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="treebank.py" pinned="false" current-in-tab="false">
-        <entry file="file://C:/Anaconda2/Lib/site-packages/nltk/tokenize/treebank.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="190">
-              <caret line="96" column="0" selection-start-line="96" selection-start-column="0" selection-end-line="96" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="xt23573.pstat" pinned="false" current-in-tab="false">
-        <entry file="mock://C:\Users\xt\.PyCharm2016.2\system\snapshots\xt23573.pstat">
-          <provider selected="true" editor-type-id="profiler-session-editor">
-            <state />
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="data.py" pinned="false" current-in-tab="false">
-        <entry file="file://C:/Anaconda2/Lib/site-packages/nltk/data.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5470">
-              <caret line="718" column="4" selection-start-line="718" selection-start-column="4" selection-end-line="718" selection-end-column="4" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -166,10 +142,10 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/code/test.py" />
-        <option value="$PROJECT_DIR$/code/lstm_with_tag_relation.py" />
         <option value="$PROJECT_DIR$/code/mess.py" />
         <option value="$PROJECT_DIR$/code/nlp_utils.py" />
         <option value="$PROJECT_DIR$/code/preprocessing.py" />
+        <option value="$PROJECT_DIR$/code/lstm_with_tag_relation.py" />
       </list>
     </option>
   </component>
@@ -293,7 +269,7 @@
       <recent name="E:\xt2357\models" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.preprocessing">
+  <component name="RunManager" selected="Python.lstm_with_tag_relation">
     <configuration default="false" name="preprocessing" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -582,10 +558,10 @@
     </list>
     <recent_temporary>
       <list size="4">
-        <item index="0" class="java.lang.String" itemvalue="Python.preprocessing" />
-        <item index="1" class="java.lang.String" itemvalue="Python.nlp_utils" />
-        <item index="2" class="java.lang.String" itemvalue="Python.mess" />
-        <item index="3" class="java.lang.String" itemvalue="Python.lstm_with_tag_relation" />
+        <item index="0" class="java.lang.String" itemvalue="Python.lstm_with_tag_relation" />
+        <item index="1" class="java.lang.String" itemvalue="Python.preprocessing" />
+        <item index="2" class="java.lang.String" itemvalue="Python.nlp_utils" />
+        <item index="3" class="java.lang.String" itemvalue="Python.mess" />
       </list>
     </recent_temporary>
   </component>
@@ -635,7 +611,14 @@
       <option name="project" value="LOCAL" />
       <updated>1479354752874</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="use jieba cut again, and keep stopwords left">
+      <created>1479357016035</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1479357016035</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TodoView">
@@ -654,15 +637,15 @@
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16042155" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32963374" sideWeight="0.5210773" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32963374" sideWeight="0.5234192" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32963374" sideWeight="0.47892272" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32963374" sideWeight="0.4765808" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.49063233" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.45550352" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.45081967" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39955604" sideWeight="0.4882904" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39955604" sideWeight="0.48594847" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -706,7 +689,8 @@
     <MESSAGE value="using nltk for sentence splitting." />
     <MESSAGE value="ensure exception safety &amp;&amp; optimize IO" />
     <MESSAGE value="stopwords and punctuation filtering &amp;&amp; use nltk tokenizer" />
-    <option name="LAST_COMMIT_MESSAGE" value="stopwords and punctuation filtering &amp;&amp; use nltk tokenizer" />
+    <MESSAGE value="use jieba cut again, and keep stopwords left" />
+    <option name="LAST_COMMIT_MESSAGE" value="use jieba cut again, and keep stopwords left" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -770,7 +754,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="220">
           <caret line="10" column="44" selection-start-line="10" selection-start-column="44" selection-end-line="10" selection-end-column="44" />
-          <folding />
+          <folding>
+            <element signature="e#14#97#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -816,7 +802,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="176">
           <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#14#97#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -960,14 +948,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/code/lstm_with_tag_relation.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="220">
-          <caret line="10" column="44" selection-start-line="10" selection-start-column="44" selection-end-line="10" selection-end-column="44" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/code/mess.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="374">
@@ -988,10 +968,47 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/code/preprocessing.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-374">
-          <caret line="67" column="56" selection-start-line="67" selection-start-column="56" selection-end-line="67" selection-end-column="56" />
+        <state relative-caret-position="154">
+          <caret line="88" column="33" selection-start-line="88" selection-start-column="33" selection-end-line="88" selection-end-column="33" />
           <folding>
             <element signature="e#14#32#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Anaconda2/Lib/site-packages/keras/layers/recurrent.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="400">
+          <caret line="601" column="22" selection-start-line="601" selection-start-column="22" selection-end-line="601" selection-end-column="22" />
+          <folding>
+            <element signature="e#27181#39283#0" expanded="false" />
+            <element signature="e#29659#30361#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Anaconda2/Lib/site-packages/keras/layers/wrappers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-734">
+          <caret line="88" column="8" selection-start-line="88" selection-start-column="8" selection-end-line="88" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Anaconda2/Lib/site-packages/keras/engine/topology.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="213">
+          <caret line="476" column="26" selection-start-line="476" selection-start-column="26" selection-end-line="476" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/code/lstm_with_tag_relation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="355">
+          <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding>
+            <element signature="e#14#97#0" expanded="true" />
           </folding>
         </state>
       </provider>
