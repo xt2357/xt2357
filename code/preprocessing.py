@@ -34,7 +34,7 @@ def merge_nyt_to_single_file(nyt_path, output_path):
                         if (count % 10000) == 0:
                             print (u"%dw news merged.." % (count / 10000))
                     except BaseException, e:
-                        print (e.message)
+                        print (unicode(e))
                         fail_count += 1
                         print (u'file fail: %s' % content_path)
                         if (fail_count % 100) == 0:
@@ -53,8 +53,8 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
             open(statistics_output_path, 'w', encoding='utf8') as statistic_file:
         title, url, text = u'', u'', u''
         tags = []
-        all_lines = news_file.readlines()
-        for line in all_lines:
+        # all_lines = news_file.readlines()
+        for line in news_file:
             if title == u'':
                 title = line
             elif url == u'':
@@ -63,6 +63,8 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
                 tags = [seg for seg in url.split(u'/') if seg.isalpha()]
                 tags = [u'-'.join(tags[:i + 1]) for i in range(len(tags))]
             elif line.strip() == u'':
+                assert title.strip() != u'' and url.strip() != u'' and text.strip() != u'', \
+                    u'title: %s, url: %s, text: %s' % (title, url, text)
                 news_structure = nlp_utils.split_into_paragraph_sentence_token(title.strip() + u'.' + text)
                 out_file.write(u' '.join(tags) + u'\n')
                 statistic_file.write(title + url)
@@ -85,6 +87,7 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
                 done_count += 1
                 if (done_count % 1000) == 0:
                     print (u'%dk news done..' % (done_count / 1000))
+                    # break
             else:
                 text += line
         statistic_file.write(u'\n')
@@ -96,7 +99,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
     structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
                                         u'../data/nyt/structured_nyt.txt', u'../data/nyt/statistic.txt')
     pass

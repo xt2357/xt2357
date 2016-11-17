@@ -1,8 +1,8 @@
 # coding=utf8
-import jieba
 import re
 import nltk.data
-
+from nltk.tokenize.treebank import TreebankWordTokenizer
+from nltk.corpus import stopwords
 
 
 caps = u"([A-Z])"
@@ -52,16 +52,23 @@ def split_into_sentences(text):
     return sentences
 
 
-nltk_sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+nltk_sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle').tokenize
 
 
 def split_into_sentences_by_nltk(text):
-    sentences = nltk_sentence_tokenizer.tokenize(text)
+    sentences = nltk_sentence_tokenizer(text)
     assert len(sentences) > 0, u'split result: %s' % sentences
+    return sentences
+
+
+english_punctuations = \
+        {u',', u'.', u':', u';', u'?', u'(', u')', u'[', u']', u'&', u'!', u'*', u'@', u'#', u'$', u'%'}
+english_stopwords = set(stopwords.words(u'english'))
+word_tokenizer = TreebankWordTokenizer().tokenize
 
 
 def tokenize(text):
-    return [tok for tok in jieba.cut(text) if tok.isalnum()]
+    return [tok for tok in word_tokenizer(text) if tok not in english_punctuations and tok not in english_stopwords]
 
 
 def split_into_paragraph_sentence_token(text):
@@ -78,6 +85,7 @@ Authorities say Roper apparently failed to slow for traffic early Saturday and s
 
 def main():
     # print ([token for token in tokens])
+    print (tokenize(TEXT))
     print (split_into_sentences_by_nltk(TEXT))
     print ([tokenize(sentence) for sentence in split_into_sentences_by_nltk(TEXT)])
     print (split_into_paragraph_sentence_token(TEXT))

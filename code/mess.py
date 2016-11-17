@@ -25,3 +25,7 @@ def test_gensim():
 
 if __name__ == '__main__':
     test_gensim()
+    try:
+        assert 1 == 0, u'ha'
+    except BaseException, e:
+        print (e)
