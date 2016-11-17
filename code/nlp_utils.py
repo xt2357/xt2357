@@ -3,6 +3,7 @@ import re
 import nltk.data
 from nltk.tokenize.treebank import TreebankWordTokenizer
 from nltk.corpus import stopwords
+import jieba
 
 
 caps = u"([A-Z])"
@@ -62,13 +63,13 @@ def split_into_sentences_by_nltk(text):
 
 
 english_punctuations = \
-        {u',', u'.', u':', u';', u'?', u'(', u')', u'[', u']', u'&', u'!', u'*', u'@', u'#', u'$', u'%'}
+        {u',', u'.', u':', u';', u'?', u'(', u')', u'[', u']', u'&', u'!', u'*', u'@', u'#', u'$', u'%', u'-'}
 english_stopwords = set(stopwords.words(u'english'))
 word_tokenizer = TreebankWordTokenizer().tokenize
 
 
 def tokenize(text):
-    return [tok for tok in word_tokenizer(text) if tok not in english_punctuations and tok not in english_stopwords]
+    return [tok for tok in jieba.cut(text) if tok.isalnum()]
 
 
 def split_into_paragraph_sentence_token(text):
