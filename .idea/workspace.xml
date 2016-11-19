@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4bfbfc10-965c-4b1c-8564-a5d62934ec28" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/code/main.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/code/lstm_with_tag_relation.py" afterPath="$PROJECT_DIR$/code/lstm_with_tag_relation.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/code/nlp_utils.py" afterPath="$PROJECT_DIR$/code/nlp_utils.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/code/preprocessing.py" afterPath="$PROJECT_DIR$/code/preprocessing.py" />
     </list>
     <ignored mask="*.rar" />
@@ -29,8 +29,9 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/xt2357$mess.coverage" NAME="mess Coverage Results" MODIFIED="1479354202729" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
+    <SUITE FILE_PATH="coverage/xt2357$main.coverage" NAME="main Coverage Results" MODIFIED="1479539383335" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
     <SUITE FILE_PATH="coverage/xt2357$lstm_with_tag_relation.coverage" NAME="lstm_with_tag_relation Coverage Results" MODIFIED="1479458936054" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
-    <SUITE FILE_PATH="coverage/xt2357$preprocessing.coverage" NAME="preprocessing Coverage Results" MODIFIED="1479489511058" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
+    <SUITE FILE_PATH="coverage/xt2357$preprocessing.coverage" NAME="preprocessing Coverage Results" MODIFIED="1479540371762" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
     <SUITE FILE_PATH="coverage/xt2357$nlp_utils.coverage" NAME="nlp_utils Coverage Results" MODIFIED="1479354240162" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/code" />
   </component>
   <component name="CreatePatchCommitExecutor">
@@ -57,20 +58,20 @@
       <file leaf-file-name="mess.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/code/mess.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="484">
-              <caret line="22" column="29" selection-start-line="22" selection-start-column="29" selection-end-line="22" selection-end-column="29" />
+            <state relative-caret-position="286">
+              <caret line="22" column="31" selection-start-line="22" selection-start-column="31" selection-end-line="22" selection-end-column="31" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="preprocessing.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="preprocessing.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/code/preprocessing.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="242">
-              <caret line="74" column="54" selection-start-line="74" selection-start-column="54" selection-end-line="74" selection-end-column="54" />
+            <state relative-caret-position="286">
+              <caret line="131" column="8" selection-start-line="131" selection-start-column="8" selection-end-line="131" selection-end-column="8" />
               <folding>
-                <element signature="e#14#32#0" expanded="true" />
+                <element signature="e#14#23#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -79,17 +80,28 @@
       <file leaf-file-name="lstm_with_tag_relation.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/code/lstm_with_tag_relation.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="688">
-              <caret line="55" column="29" selection-start-line="55" selection-start-column="29" selection-end-line="55" selection-end-column="29" />
+            <state relative-caret-position="190">
+              <caret line="30" column="4" selection-start-line="30" selection-start-column="4" selection-end-line="30" selection-end-column="4" />
               <folding>
                 <element signature="e#14#106#0" expanded="true" />
-                <marker date="1479458936044" expanded="true" signature="3369:3471" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="nlp_utils.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/code/main.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="264">
+              <caret line="12" column="10" selection-start-line="12" selection-start-column="10" selection-end-line="12" selection-end-column="10" />
+              <folding>
+                <element signature="e#14#55#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="nlp_utils.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/code/nlp_utils.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="256">
@@ -125,9 +137,10 @@
       <list>
         <option value="$PROJECT_DIR$/code/test.py" />
         <option value="$PROJECT_DIR$/code/mess.py" />
-        <option value="$PROJECT_DIR$/code/lstm_with_tag_relation.py" />
-        <option value="$PROJECT_DIR$/code/preprocessing.py" />
         <option value="$PROJECT_DIR$/code/nlp_utils.py" />
+        <option value="$PROJECT_DIR$/code/lstm_with_tag_relation.py" />
+        <option value="$PROJECT_DIR$/code/main.py" />
+        <option value="$PROJECT_DIR$/code/preprocessing.py" />
       </list>
     </option>
   </component>
@@ -320,6 +333,24 @@
       <module name="xt2357" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/code/nlp_utils.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="main" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/code" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="xt2357" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/code/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -532,18 +563,20 @@
       <option name="USE_KEYWORD" value="false" />
       <method />
     </configuration>
-    <list size="4">
+    <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.preprocessing" />
       <item index="1" class="java.lang.String" itemvalue="Python.mess" />
       <item index="2" class="java.lang.String" itemvalue="Python.lstm_with_tag_relation" />
       <item index="3" class="java.lang.String" itemvalue="Python.nlp_utils" />
+      <item index="4" class="java.lang.String" itemvalue="Python.main" />
     </list>
     <recent_temporary>
-      <list size="4">
+      <list size="5">
         <item index="0" class="java.lang.String" itemvalue="Python.preprocessing" />
-        <item index="1" class="java.lang.String" itemvalue="Python.lstm_with_tag_relation" />
-        <item index="2" class="java.lang.String" itemvalue="Python.nlp_utils" />
-        <item index="3" class="java.lang.String" itemvalue="Python.mess" />
+        <item index="1" class="java.lang.String" itemvalue="Python.main" />
+        <item index="2" class="java.lang.String" itemvalue="Python.lstm_with_tag_relation" />
+        <item index="3" class="java.lang.String" itemvalue="Python.nlp_utils" />
+        <item index="4" class="java.lang.String" itemvalue="Python.mess" />
       </list>
     </recent_temporary>
   </component>
@@ -614,7 +647,14 @@
       <option name="project" value="LOCAL" />
       <updated>1479400539419</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="implement simple lstm &amp;&amp; treat title as a single paragraph">
+      <created>1479531065415</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1479531065415</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TodoView">
@@ -632,11 +672,11 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16276346" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32963374" sideWeight="0.530445" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32963374" sideWeight="0.5327869" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32963374" sideWeight="0.46955502" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.49063233" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.43911007" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32963374" sideWeight="0.46721312" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.4882904" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.43442622" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963374" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -688,7 +728,8 @@
     <MESSAGE value="use jieba cut again, and keep stopwords left" />
     <MESSAGE value="to do" />
     <MESSAGE value="implement hierarchical lstm, comment the one-line hierarchical lstm implementation" />
-    <option name="LAST_COMMIT_MESSAGE" value="implement hierarchical lstm, comment the one-line hierarchical lstm implementation" />
+    <MESSAGE value="implement simple lstm &amp;&amp; treat title as a single paragraph" />
+    <option name="LAST_COMMIT_MESSAGE" value="implement simple lstm &amp;&amp; treat title as a single paragraph" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -743,7 +784,7 @@
         <state relative-caret-position="1650">
           <caret line="76" column="58" selection-start-line="76" selection-start-column="58" selection-end-line="76" selection-end-column="58" />
           <folding>
-            <element signature="e#14#32#0" expanded="true" />
+            <element signature="e#14#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -754,7 +795,6 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#14#106#0" expanded="true" />
-            <marker date="1479458936044" expanded="true" signature="3369:3471" ph="..." />
           </folding>
         </state>
       </provider>
@@ -792,7 +832,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#32#0" expanded="true" />
+            <element signature="e#14#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -803,7 +843,6 @@
           <caret line="10" column="44" selection-start-line="10" selection-start-column="44" selection-end-line="10" selection-end-column="44" />
           <folding>
             <element signature="e#14#106#0" expanded="true" />
-            <marker date="1479458936044" expanded="true" signature="3369:3471" ph="..." />
           </folding>
         </state>
       </provider>
@@ -841,7 +880,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#14#32#0" expanded="true" />
+            <element signature="e#14#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -852,7 +891,6 @@
           <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
           <folding>
             <element signature="e#14#106#0" expanded="true" />
-            <marker date="1479458936044" expanded="true" signature="3369:3471" ph="..." />
           </folding>
         </state>
       </provider>
@@ -955,6 +993,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="169">
           <caret line="735" column="0" selection-start-line="735" selection-start-column="0" selection-end-line="735" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1013,14 +1052,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/code/mess.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="484">
-          <caret line="22" column="29" selection-start-line="22" selection-start-column="29" selection-end-line="22" selection-end-column="29" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://C:/Anaconda2/Lib/site-packages/keras/engine/topology.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="190">
@@ -1029,31 +1060,56 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/code/nlp_utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="256">
+          <caret line="82" column="29" selection-start-line="82" selection-start-column="29" selection-end-line="82" selection-end-column="29" />
+          <folding>
+            <element signature="e#14#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2016.2/system/python_stubs/884504192/__builtin__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="190">
+          <caret line="531" column="4" selection-start-line="531" selection-start-column="4" selection-end-line="531" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/code/lstm_with_tag_relation.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="688">
-          <caret line="55" column="29" selection-start-line="55" selection-start-column="29" selection-end-line="55" selection-end-column="29" />
+        <state relative-caret-position="190">
+          <caret line="30" column="4" selection-start-line="30" selection-start-column="4" selection-end-line="30" selection-end-column="4" />
           <folding>
             <element signature="e#14#106#0" expanded="true" />
-            <marker date="1479458936044" expanded="true" signature="3369:3471" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/code/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="264">
+          <caret line="12" column="10" selection-start-line="12" selection-start-column="10" selection-end-line="12" selection-end-column="10" />
+          <folding>
+            <element signature="e#14#55#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/code/mess.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="286">
+          <caret line="22" column="31" selection-start-line="22" selection-start-column="31" selection-end-line="22" selection-end-column="31" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/code/preprocessing.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="242">
-          <caret line="74" column="54" selection-start-line="74" selection-start-column="54" selection-end-line="74" selection-end-column="54" />
-          <folding>
-            <element signature="e#14#32#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/code/nlp_utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="256">
-          <caret line="82" column="29" selection-start-line="82" selection-start-column="29" selection-end-line="82" selection-end-column="29" />
+        <state relative-caret-position="286">
+          <caret line="131" column="8" selection-start-line="131" selection-start-column="8" selection-end-line="131" selection-end-column="8" />
           <folding>
             <element signature="e#14#23#0" expanded="true" />
           </folding>

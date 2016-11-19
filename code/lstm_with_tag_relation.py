@@ -4,12 +4,7 @@ from keras.models import Model
 from keras.regularizers import l2
 
 
-def get_embedding_layer(dict_size, embedding_dim):
-    embedding_layer = Embedding(dict_size, embedding_dim, trainable=False)
-    return embedding_layer
-
-
-def lstm_model(nb_paragraph, nb_sentence, nb_words, dict_size,
+def lstm_model(nb_paragraph, nb_sentence, nb_words, dict_size, word_embedding_weights,
                word_embedding_dim, sentence_embedding_dim, paragraph_embedding_dim, document_embedding_dim):
     word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(nb_words, word_embedding_dim),
                      activation=u'sigmoid', inner_activation=u'hard_sigmoid')
@@ -21,7 +16,8 @@ def lstm_model(nb_paragraph, nb_sentence, nb_words, dict_size,
                            name=u'relation', bias=False, W_regularizer=l2(0.01))
     total_words = nb_words * nb_sentence * nb_paragraph
     input_layer = Input(shape=(total_words,))
-    embedding_layer = get_embedding_layer(dict_size, word_embedding_dim)(input_layer)
+    embedding_layer = \
+        Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=False)(input_layer)
     first_reshape = Reshape((nb_paragraph * nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
     sentence_embeddings = TimeDistributed(word_lstm)(first_reshape)
     second_reshape = Reshape((nb_paragraph, nb_sentence, sentence_embedding_dim))(sentence_embeddings)
@@ -32,7 +28,7 @@ def lstm_model(nb_paragraph, nb_sentence, nb_words, dict_size,
     return Model(input=input_layer, output=output_layer)
 
 
-def simplified_lstm_model(nb_sentence, nb_words, dict_size,
+def simplified_lstm_model(nb_sentence, nb_words, dict_size, word_embedding_weights,
                           word_embedding_dim, sentence_embedding_dim, document_embedding_dim):
     word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(nb_words, word_embedding_dim),
                      activation=u'sigmoid', inner_activation=u'hard_sigmoid')
@@ -42,7 +38,8 @@ def simplified_lstm_model(nb_sentence, nb_words, dict_size,
                            name=u'relation', bias=False, W_regularizer=l2(0.01))
     total_words = nb_words * nb_sentence
     input_layer = Input(shape=(total_words,))
-    embedding_layer = get_embedding_layer(dict_size, word_embedding_dim)(input_layer)
+    embedding_layer = \
+        Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=False)(input_layer)
     first_reshape = Reshape((nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
     sentence_embeddings = TimeDistributed(word_lstm)(first_reshape)
     document_embedding = sentence_lstm(sentence_embeddings)

@@ -1,9 +1,15 @@
 # coding=utf8
-import os, sys, re
+import os
+import re
+import sys
+import itertools
+
 import nlp_utils
 
 NYT_PATH = ur'D:\nyt\NYT'
 NYT_SINGLE_FILE_PATH = ur'../data/nyt/nyt_single.txt'
+STRUCTURED_NYT_PATH = ur'../data/nyt/structured_nyt.txt'
+STRUCTURED_NYT_STAT_PATH = ur'../data/nyt/statistic.txt'
 
 
 # noinspection PyBroadException
@@ -99,12 +105,64 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
                               news_cnt, para_aver, para_min, para_max))
 
 
-def main():
-    merge_nyt_to_single_file(NYT_PATH, NYT_SINGLE_FILE_PATH)
+NYT_DICT_PATH = ur'../data/nyt/nyt_dict.txt'
+
+
+def get_nyt_dict(structured_nyt_path, output_dict_path):
+    from codecs import open
+    nyt_dict = {u'': sys.maxint}
+    for line in open(structured_nyt_path, encoding='utf8'):
+        for word in line.split():
+            if word in nyt_dict:
+                nyt_dict[word] += 1
+            else:
+                nyt_dict[word] = 1
+    res = [item for item in nyt_dict.iteritems()]
+    res.sort(lambda x, y: cmp(x[1], y[1]), reverse=True)
+    with open(output_dict_path, 'w', encoding='utf8') as output:
+        idx = 0
+        for item in res:
+            output.write(u'%d %s %d\n' % (idx, item[0], item[1]))
+            idx += 1
+
+
+def get_nyt_word_embeddings(nyt_dict_path, output_embedding_path):
+    from gensim.models import word2vec
+    model = word2vec.Word2Vec.load_word2vec_format(ur'..\models\GoogleNews-vectors-negative300.bin', binary=True)
+    pass
+
+
+# (21946236, 21341986) words in sentences: (sentence cnt, less than 48 cnt)
+# (600929, 478460) sentences in documents (document cnt, less than 48 cnt)
+MAX_WORDS_IN_SENTENCE = 48
+MAX_SENTENCES_IN_DOCUMENT = 48
+
+
+def calc_words_less_than_max_percentage():
+    line_cnt, my_cnt = 0, 0
+    for line in file(STRUCTURED_NYT_PATH):
+        if len(line.split()) <= MAX_WORDS_IN_SENTENCE:
+            my_cnt += 1
+        line_cnt += 1
+    print (line_cnt, my_cnt)
+
+
+def calc_sentences_less_than_max_percentage():
+    doc_cnt, ok_cnt = 0, 0
+    for stat in itertools.islice(file(STRUCTURED_NYT_STAT_PATH), 2, None, 3):
+        if not stat[0].isdigit():
+            break
+        doc_cnt += 1
+        if sum([int(c) for c in stat.split()[1:]]) <= MAX_SENTENCES_IN_DOCUMENT:
+            ok_cnt += 1
+    print (doc_cnt, ok_cnt)
 
 
 if __name__ == '__main__':
-    # main()
-    structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
-                                        u'../data/nyt/structured_nyt.txt', u'../data/nyt/statistic.txt')
+    # merge_nyt_to_single_file(NYT_PATH, NYT_SINGLE_FILE_PATH)
+    # structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
+    #                                     STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH)
+    # calc_words_less_than_max_percentage()
+    # calc_sentences_less_than_max_percentage()
+    # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_DICT_PATH)
     pass
