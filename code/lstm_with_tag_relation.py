@@ -1,7 +1,9 @@
 # coding=utf8
-from keras.layers import Input, Embedding, LSTM, Dense, TimeDistributed, Activation, Reshape
+from keras.layers import Input, Embedding, LSTM, Dense, TimeDistributed, Activation, Reshape, Masking
 from keras.models import Model
 from keras.regularizers import l2
+from keras.models import Sequential
+import numpy
 
 
 def lstm_model(nb_paragraph, nb_sentence, nb_words, dict_size, word_embedding_weights,
@@ -48,6 +50,54 @@ def simplified_lstm_model(nb_sentence, nb_words, dict_size, word_embedding_weigh
     return Model(input=input_layer, output=output_layer)
 
 
+def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weights,
+                           word_embedding_dim, sentence_embedding_dim, document_embedding_dim):
+    word_lstm_model = Sequential()
+    word_lstm_model.add(Masking(input_shape=(nb_words, word_embedding_dim)))
+    word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(None, word_embedding_dim),
+                     activation=u'sigmoid', inner_activation=u'hard_sigmoid')
+    word_lstm_model.add(word_lstm)
+    sentence_lstm_model = Sequential()
+    sentence_lstm_model.add(Masking(input_shape=(nb_sentence, sentence_embedding_dim)))
+    sentence_lstm = LSTM(output_dim=document_embedding_dim, input_shape=(None, sentence_embedding_dim),
+                         activation=u'sigmoid', inner_activation=u'hard_sigmoid')
+    sentence_lstm_model.add(sentence_lstm)
+    relation_layer = Dense(output_dim=document_embedding_dim, input_shape=(document_embedding_dim,),
+                           name=u'relation', bias=False, W_regularizer=l2(0.01))
+    total_words = nb_words * nb_sentence
+    input_layer = Input(shape=(total_words,))
+    embedding_layer = \
+        Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=False)(input_layer)
+    first_reshape = Reshape((nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
+    sentence_embeddings = TimeDistributed(word_lstm_model)(first_reshape)
+    document_embedding = sentence_lstm_model(sentence_embeddings)
+    adjusted_score_layer = relation_layer(document_embedding)
+    output_layer = Activation(activation=u'softmax')(adjusted_score_layer)
+    return Model(input=input_layer, output=output_layer)
+
+
+def test_mask_model():
+    inner_model = Sequential()
+    inner_model.add(Masking(input_shape=(3, 4)))
+    word_lstm = LSTM(output_dim=8, input_shape=(None, 4),
+                     activation=u'sigmoid', inner_activation=u'hard_sigmoid')
+    inner_model.add(word_lstm)
+    input_layer = Input(shape=(6, 4))
+    first_reshape = Reshape((2, 3, 4))(input_layer)
+    sentence_embeddings = TimeDistributed(inner_model)(first_reshape)
+    return Model(input=input_layer, output=sentence_embeddings)
+
+
+def test_mask():
+    my_model = test_mask_model()
+    print (my_model.predict(
+        [numpy.array([[[1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0], [1, 0, 0, 0]]])]))
+    print (u'hello')
+    print (my_model.predict(
+        [numpy.array([[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [6, 6, 6, 6], [3, 3, 3, 3], [0, 0, 0, 0]]])]))
+
+
 if __name__ == '__main__':
-    model = simplified_lstm_model(64, 32, 20000, 300, 600, 700)
+    model = masked_simplified_lstm(48, 48, 20000, None, 300, 600, 100)
     model.get_layer(name=u'relation')
+    pass
