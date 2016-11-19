@@ -126,10 +126,23 @@ def get_nyt_dict(structured_nyt_path, output_dict_path):
             idx += 1
 
 
+NYT_WORD_EMBEDDING_PATH = ur'../data/nyt/nyt_word_embedding.txt'
+
+
 def get_nyt_word_embeddings(nyt_dict_path, output_embedding_path):
     from gensim.models import word2vec
+    from codecs import open
     model = word2vec.Word2Vec.load_word2vec_format(ur'..\models\GoogleNews-vectors-negative300.bin', binary=True)
-    pass
+    word_embedding_dim = 300
+    with open(output_embedding_path, 'w', encoding='utf8') as output:
+        v = [0.0] * word_embedding_dim
+        for line in open(nyt_dict_path, encoding='utf8'):
+            word = line.split()[1]
+            output.write(line.strip() + u' ')
+            if word in model:
+                output.write(u' '.join([str(component) for component in model[word]]) + u'\n')
+            else:
+                output.write(u' '.join([str(component) for component in v]) + u'\n')
 
 
 # (21946236, 21341986) words in sentences: (sentence cnt, less than 48 cnt)
@@ -165,4 +178,5 @@ if __name__ == '__main__':
     # calc_words_less_than_max_percentage()
     # calc_sentences_less_than_max_percentage()
     # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_DICT_PATH)
+    # get_nyt_word_embeddings(NYT_DICT_PATH, NYT_WORD_EMBEDDING_PATH)
     pass

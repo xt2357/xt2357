@@ -1,6 +1,7 @@
 <component name="ProjectDictionaryState">
   <dictionary name="xt">
     <words>
+      <w>gensim</w>
       <w>lstm</w>
       <w>nltk</w>
       <w>softmax</w>
