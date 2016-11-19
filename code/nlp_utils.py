@@ -5,7 +5,6 @@ from nltk.tokenize.treebank import TreebankWordTokenizer
 from nltk.corpus import stopwords
 import jieba
 
-
 caps = u"([A-Z])"
 prefixes = u"(Mr|St|Mrs|Ms|Dr)[.]"
 suffixes = u"(Inc|Ltd|Jr|Sr|Co)"
@@ -29,11 +28,11 @@ def split_into_sentences(text):
     if u"Ph.D" in text:
         text = text.replace(u"Ph.D.", u"Ph<prd>D<prd>")
     text = re.sub(u"\s" + caps + u"[.] ", u" \\1<prd> ", text)
-    text = re.sub(acronyms+u" "+starters, u"\\1<stop> \\2", text)
+    text = re.sub(acronyms + u" " + starters, u"\\1<stop> \\2", text)
     text = re.sub(caps + u"[.]" + caps + u"[.]" + caps + u"[.]", u"\\1<prd>\\2<prd>\\3<prd>", text)
     text = re.sub(caps + u"[.]" + caps + u"[.]", u"\\1<prd>\\2<prd>", text)
-    text = re.sub(u" "+suffixes+u"[.] "+starters, u" \\1<stop> \\2", text)
-    text = re.sub(u" "+suffixes+u"[.]", u" \\1<prd>", text)
+    text = re.sub(u" " + suffixes + u"[.] " + starters, u" \\1<stop> \\2", text)
+    text = re.sub(u" " + suffixes + u"[.]", u" \\1<prd>", text)
     text = re.sub(u" " + caps + u"[.]", u" \\1<prd>", text)
     if u"”" in text:
         text = text.replace(u".”", u"”.")
@@ -63,7 +62,7 @@ def split_into_sentences_by_nltk(text):
 
 
 english_punctuations = \
-        {u',', u'.', u':', u';', u'?', u'(', u')', u'[', u']', u'&', u'!', u'*', u'@', u'#', u'$', u'%', u'-'}
+    {u',', u'.', u':', u';', u'?', u'(', u')', u'[', u']', u'&', u'!', u'*', u'@', u'#', u'$', u'%', u'-'}
 english_stopwords = set(stopwords.words(u'english'))
 word_tokenizer = TreebankWordTokenizer().tokenize
 
@@ -76,9 +75,12 @@ sentence_pattern = re.compile(ur'.*[0-9A-Za-z]+.*', re.UNICODE)
 
 
 def split_into_paragraph_sentence_token(text):
-    return [[tokenize(sentence) for sentence in split_into_sentences_by_nltk(paragraph)
-             if sentence_pattern.match(sentence)]
-            for paragraph in text.splitlines() if paragraph.strip() != u'']
+    result = \
+        [[tokenize(sentence) for sentence in split_into_sentences_by_nltk(paragraph)
+          if sentence_pattern.match(sentence)]
+         for paragraph in text.splitlines() if paragraph.strip() != u'']
+    result = [[sent for sent in para if len(sent) > 0] for para in result]
+    return [para for para in result if len(para) > 0]
 
 
 TEXT = ur'''TRENTON, N.J. — The Wal-Mart truck driver from Georgia accused of triggering a crash in New Jersey that critically injured Tracy Morgan and killed another comedian had not slept for more than 24 hours.

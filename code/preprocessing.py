@@ -65,7 +65,7 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
             elif line.strip() == u'':
                 assert title.strip() != u'' and url.strip() != u'' and text.strip() != u'', \
                     u'title: %s, url: %s, text: %s' % (title, url, text)
-                news_structure = nlp_utils.split_into_paragraph_sentence_token(title.strip() + u'. ' + text)
+                news_structure = nlp_utils.split_into_paragraph_sentence_token(title.strip() + u'\n' + text)
                 out_file.write(u' '.join(tags) + u'\n')
                 statistic_file.write(title + url)
                 statistic_file.write(
