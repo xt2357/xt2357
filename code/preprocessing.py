@@ -4,7 +4,7 @@ import re
 import sys
 import itertools
 import codecs
-
+from keras.utils import np_utils
 import nlp_utils
 
 NYT_PATH = ur'D:\nyt\NYT'
@@ -207,30 +207,44 @@ def calc_sentences_less_than_max_percentage():
     print (doc_cnt, ok_cnt)
 
 
+DICTIONARY_LOADED = False
 DICT_SIZE = 200000
 # use empty string for padding when word are not in dictionary
 PADDING_WORD = u''
 PADDING_WORD_IDX = 0
 DICTIONARY = {}
-print (u'loading dictionary from %s..' % NYT_IGNORE_CASE_DICT_PATH)
-_cnt = 0
-for dictionary_line in codecs.open(NYT_IGNORE_CASE_DICT_PATH, encoding='utf8'):
-    if _cnt >= DICT_SIZE:
-        break
-    _word = dictionary_line.split()[1]
-    _idx = int(dictionary_line.split()[0])
-    DICTIONARY[_word] = _idx
-    _cnt += 1
-print (u'loading dictionary from %s done..' % NYT_IGNORE_CASE_DICT_PATH)
 TAG_DICT_SIZE = 0
 TAG_DICTIONARY = {}
-print (u'loading tag dictionary from %s..' % NYT_TAG_DICT_PATH)
-for tag_dictionary_line in codecs.open(NYT_TAG_DICT_PATH, encoding='utf8'):
-    _idx = int(tag_dictionary_line.split()[0])
-    _tag = tag_dictionary_line.split()[1]
-    TAG_DICTIONARY[_tag] = _idx
-    TAG_DICT_SIZE += 1
-print (u'loading tag dictionary from %s done..' % NYT_TAG_DICT_PATH)
+
+
+def load_dictionaries():
+    global DICTIONARY_LOADED
+    if DICTIONARY_LOADED:
+        return
+    global TAG_DICT_SIZE
+    print (u'loading dictionary from %s..' % NYT_IGNORE_CASE_DICT_PATH)
+    _cnt = 0
+    for dictionary_line in codecs.open(NYT_IGNORE_CASE_DICT_PATH, encoding='utf8'):
+        if _cnt >= DICT_SIZE:
+            break
+        _word = dictionary_line.split()[1]
+        _idx = int(dictionary_line.split()[0])
+        DICTIONARY[_word] = _idx
+        _cnt += 1
+    print (u'loading dictionary from %s done..' % NYT_IGNORE_CASE_DICT_PATH)
+
+    print (u'loading tag dictionary from %s..' % NYT_TAG_DICT_PATH)
+    for tag_dictionary_line in codecs.open(NYT_TAG_DICT_PATH, encoding='utf8'):
+        _idx = int(tag_dictionary_line.split()[0])
+        _tag = tag_dictionary_line.split()[1]
+        TAG_DICTIONARY[_tag] = _idx
+        TAG_DICT_SIZE += 1
+    print (u'loading tag dictionary from %s done..' % NYT_TAG_DICT_PATH)
+    DICTIONARY_LOADED = True
+
+
+# load dictionary when import
+load_dictionaries()
 
 
 # sentences: [[word1, word2, ...], [], [], ..]
@@ -256,6 +270,7 @@ Y_ALL_PATH = ur'../data/nyt/y_all.txt'
 
 
 def transform_structured_nyt_to_regular_data(structured_nyt_path, structured_nyt_stat_path, x_all_path, y_all_path):
+    load_dictionaries()
     from codecs import open
     with open(structured_nyt_stat_path, encoding='utf8') as stat, \
             open(structured_nyt_path, encoding='utf8') as nyt, \
@@ -272,16 +287,47 @@ def transform_structured_nyt_to_regular_data(structured_nyt_path, structured_nyt
             x_all.write(u' '.join([str(idx) for idx in padding_document(sentences)]) + u'\n')
 
 
+def randomly_split_data(eval_data_size, x_all_path, y_all_path, x_train_path, y_train_path, x_eval_path, y_eval_path):
+    from random import randint
+    reservoir = []
+    with codecs.open(x_all_path, encoding='utf8') as x_all, \
+            codecs.open(y_all_path, encoding='utf8') as y_all, \
+            codecs.open(x_train_path, 'w', encoding='utf8') as x_train, \
+            codecs.open(y_train_path, 'w', encoding='utf8') as y_train:
+        idx = 0
+        for x in x_all:
+            y = y_all.readline()
+            if idx < eval_data_size:
+                reservoir.append((x, y))
+            else:
+                r = randint(0, idx)
+                if r < eval_data_size:
+                    x_train.write(reservoir[r][0])
+                    y_train.write(reservoir[r][1])
+                    reservoir[r] = (x, y)
+            idx += 1
+    with codecs.open(x_eval_path, 'w', encoding='utf8') as x_eval, \
+            codecs.open(y_eval_path, 'w', encoding='utf8') as y_eval:
+        for (x, y) in reservoir:
+            x_eval.write(x)
+            y_eval.write(y)
+
+
 if __name__ == '__main__':
     # merge_nyt_to_single_file(NYT_PATH, NYT_SINGLE_FILE_PATH)
     structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
                                         STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH)
     # calc_words_less_than_max_percentage()
     # calc_sentences_less_than_max_percentage()
+
     # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_DICT_PATH)
     # get_nyt_word_embeddings(NYT_DICT_PATH, NYT_WORD_EMBEDDING_PATH)
-    # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_IGNORE_CASE_DICT_PATH, ignore_case=True)
-    # get_nyt_word_embeddings(NYT_IGNORE_CASE_DICT_PATH, NYT_IGNORE_CASE_WORD_EMBEDDING_PATH)
+
+    get_nyt_dict(STRUCTURED_NYT_PATH, NYT_IGNORE_CASE_DICT_PATH, ignore_case=True)
+    get_nyt_word_embeddings(NYT_IGNORE_CASE_DICT_PATH, NYT_IGNORE_CASE_WORD_EMBEDDING_PATH)
+
     # print (padding_document([[u'hello', u'world'], [], [u'a', u'b']]))
-    # get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
+    get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
+
+    transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
     pass
