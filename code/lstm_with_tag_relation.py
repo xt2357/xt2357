@@ -3,7 +3,9 @@ from keras.layers import Input, Embedding, LSTM, Dense, TimeDistributed, Activat
 from keras.models import Model
 from keras.regularizers import l2
 from keras.models import Sequential
+from keras import backend as K
 import numpy
+import preprocessing
 
 
 def lstm_model(nb_paragraph, nb_sentence, nb_words, dict_size, word_embedding_weights,
@@ -73,7 +75,13 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
     document_embedding = sentence_lstm_model(sentence_embeddings)
     adjusted_score_layer = relation_layer(document_embedding)
     output_layer = Activation(activation=u'softmax')(adjusted_score_layer)
-    return Model(input=input_layer, output=output_layer)
+
+    def masked_simplified_lstm_loss(y_true, y_pred):
+        return K.categorical_crossentropy(y_pred, y_true) - K.sum(y_true * relation_layer.call(y_true), axis=-1)
+
+    model = Model(input=input_layer, output=output_layer)
+    model.compile(loss=masked_simplified_lstm_loss, optimizer='rmsprop')
+    return model
 
 
 def test_mask_model():
@@ -97,7 +105,11 @@ def test_mask():
         [numpy.array([[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [6, 6, 6, 6], [3, 3, 3, 3], [0, 0, 0, 0]]])]))
 
 
+def main():
+    model = masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT, preprocessing.MAX_WORDS_IN_SENTENCE,
+                                   preprocessing.DICT_SIZE, None, 300, 600, preprocessing.TAG_DICT_SIZE)
+
+
 if __name__ == '__main__':
-    model = masked_simplified_lstm(48, 48, 20000, None, 300, 600, 100)
-    model.get_layer(name=u'relation')
+    main()
     pass

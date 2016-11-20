@@ -4,7 +4,9 @@
       <w>gensim</w>
       <w>lstm</w>
       <w>nltk</w>
+      <w>pred</w>
       <w>readlines</w>
+      <w>rmsprop</w>
       <w>softmax</w>
     </words>
   </dictionary>
