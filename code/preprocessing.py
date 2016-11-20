@@ -280,11 +280,17 @@ def transform_structured_nyt_to_regular_data(structured_nyt_path, structured_nyt
             if not stat_line[0].isdigit():
                 break
             nb_sentence = sum([int(cnt) for cnt in stat_line.split()[1:]])
-            y_all.write(u' '.join([TAG_DICTIONARY[tag] for tag in nyt.readline().split()]) + u'\n')
+            y_all.write(u' '.join([str(TAG_DICTIONARY[tag]) for tag in nyt.readline().split()]) + u'\n')
             sentences = []
             for i in range(nb_sentence):
                 sentences.append(nyt.readline().split())
             x_all.write(u' '.join([str(idx) for idx in padding_document(sentences)]) + u'\n')
+
+
+X_TRAIN_PATH = ur'../data/nyt/x_train.txt'
+Y_TRAIN_PATH = ur'../data/nyt/y_train.txt'
+X_EVAL_PATH = ur'../data/nyt/x_eval.txt'
+Y_EVAL_PATH = ur'../data/nyt/y_eval.txt'
 
 
 def randomly_split_data(eval_data_size, x_all_path, y_all_path, x_train_path, y_train_path, x_eval_path, y_eval_path):
@@ -305,7 +311,12 @@ def randomly_split_data(eval_data_size, x_all_path, y_all_path, x_train_path, y_
                     x_train.write(reservoir[r][0])
                     y_train.write(reservoir[r][1])
                     reservoir[r] = (x, y)
+                else:
+                    x_train.write(x)
+                    y_train.write(y)
             idx += 1
+            if (idx % 10000) == 0:
+                print (u'%dw samples done..' % (idx / 10000))
     with codecs.open(x_eval_path, 'w', encoding='utf8') as x_eval, \
             codecs.open(y_eval_path, 'w', encoding='utf8') as y_eval:
         for (x, y) in reservoir:
@@ -315,19 +326,20 @@ def randomly_split_data(eval_data_size, x_all_path, y_all_path, x_train_path, y_
 
 if __name__ == '__main__':
     # merge_nyt_to_single_file(NYT_PATH, NYT_SINGLE_FILE_PATH)
-    structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
-                                        STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH)
+    # structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
+    #                                     STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH)
     # calc_words_less_than_max_percentage()
     # calc_sentences_less_than_max_percentage()
 
     # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_DICT_PATH)
     # get_nyt_word_embeddings(NYT_DICT_PATH, NYT_WORD_EMBEDDING_PATH)
 
-    get_nyt_dict(STRUCTURED_NYT_PATH, NYT_IGNORE_CASE_DICT_PATH, ignore_case=True)
-    get_nyt_word_embeddings(NYT_IGNORE_CASE_DICT_PATH, NYT_IGNORE_CASE_WORD_EMBEDDING_PATH)
+    # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_IGNORE_CASE_DICT_PATH, ignore_case=True)
+    # get_nyt_word_embeddings(NYT_IGNORE_CASE_DICT_PATH, NYT_IGNORE_CASE_WORD_EMBEDDING_PATH)
 
     # print (padding_document([[u'hello', u'world'], [], [u'a', u'b']]))
-    get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
+    # get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
 
-    transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
+    # transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
+    randomly_split_data(100000, X_ALL_PATH, Y_ALL_PATH, X_TRAIN_PATH, Y_TRAIN_PATH, X_EVAL_PATH, Y_EVAL_PATH)
     pass
