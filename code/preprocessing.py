@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import itertools
+import codecs
 
 import nlp_utils
 
@@ -48,6 +49,14 @@ def merge_nyt_to_single_file(nyt_path, output_path):
     print ("fail %d" % fail_count)
 
 
+def extract_tags_from_url(url):
+    tags = [seg for seg in url.split(u'/') if seg.isalpha()]
+    tags = [u'-'.join(tags[:i + 1]) for i in range(len(tags))]
+    if len(tags) > 3:
+        tags = tags[:3]
+    return tags
+
+
 def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, statistics_output_path):
     from codecs import open
     done_count = 0
@@ -66,8 +75,7 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
             elif url == u'':
                 url = line
                 assert url.startswith(u'http'), u'title: %s, url: %s' % (title, url)
-                tags = [seg for seg in url.split(u'/') if seg.isalpha()]
-                tags = [u'-'.join(tags[:i + 1]) for i in range(len(tags))]
+                tags = extract_tags_from_url(url)
             elif line.strip() == u'':
                 assert title.strip() != u'' and url.strip() != u'' and text.strip() != u'', \
                     u'title: %s, url: %s, text: %s' % (title, url, text)
@@ -106,13 +114,16 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
 
 
 NYT_DICT_PATH = ur'../data/nyt/nyt_dict.txt'
+NYT_IGNORE_CASE_DICT_PATH = ur'../data/nyt/nyt_ignore_case_dict.txt'
 
 
-def get_nyt_dict(structured_nyt_path, output_dict_path):
+def get_nyt_dict(structured_nyt_path, output_dict_path, ignore_case=False):
     from codecs import open
     nyt_dict = {u'': sys.maxint}
     for line in open(structured_nyt_path, encoding='utf8'):
         for word in line.split():
+            if ignore_case:
+                word = word.lower()
             if word in nyt_dict:
                 nyt_dict[word] += 1
             else:
@@ -126,7 +137,32 @@ def get_nyt_dict(structured_nyt_path, output_dict_path):
             idx += 1
 
 
+NYT_TAG_DICT_PATH = ur'../data/nyt/tag_dict.txt'
+
+
+def get_nyt_tag_dict(structured_nyt_stat_path, nyt_tag_dict_path):
+    from codecs import open
+    tag_dict = {}
+    for url in itertools.islice(open(structured_nyt_stat_path, encoding='utf8'), 1, None, 3):
+        if not url.startswith(u'http'):
+            break
+        tags = extract_tags_from_url(url)
+        for tag in tags:
+            if tag in tag_dict:
+                tag_dict[tag] += 1
+            else:
+                tag_dict[tag] = 1
+    sorted_tags = [item for item in tag_dict.iteritems()]
+    sorted_tags.sort(lambda x, y: cmp(x[1], y[1]), reverse=True)
+    idx = 0
+    with open(nyt_tag_dict_path, 'w', encoding='utf8') as dict_output:
+        for item in sorted_tags:
+            dict_output.write(u'%d %s %d\n' % (idx, item[0], item[1]))
+            idx += 1
+
+
 NYT_WORD_EMBEDDING_PATH = ur'../data/nyt/nyt_word_embedding.txt'
+NYT_IGNORE_CASE_WORD_EMBEDDING_PATH = ur'../data/nyt/nyt_ignore_case_word_embedding.txt'
 
 
 def get_nyt_word_embeddings(nyt_dict_path, output_embedding_path):
@@ -171,12 +207,81 @@ def calc_sentences_less_than_max_percentage():
     print (doc_cnt, ok_cnt)
 
 
+DICT_SIZE = 200000
+# use empty string for padding when word are not in dictionary
+PADDING_WORD = u''
+PADDING_WORD_IDX = 0
+DICTIONARY = {}
+print (u'loading dictionary from %s..' % NYT_IGNORE_CASE_DICT_PATH)
+_cnt = 0
+for dictionary_line in codecs.open(NYT_IGNORE_CASE_DICT_PATH, encoding='utf8'):
+    if _cnt >= DICT_SIZE:
+        break
+    _word = dictionary_line.split()[1]
+    _idx = int(dictionary_line.split()[0])
+    DICTIONARY[_word] = _idx
+    _cnt += 1
+print (u'loading dictionary from %s done..' % NYT_IGNORE_CASE_DICT_PATH)
+TAG_DICT_SIZE = 0
+TAG_DICTIONARY = {}
+print (u'loading tag dictionary from %s..' % NYT_TAG_DICT_PATH)
+for tag_dictionary_line in codecs.open(NYT_TAG_DICT_PATH, encoding='utf8'):
+    _idx = int(tag_dictionary_line.split()[0])
+    _tag = tag_dictionary_line.split()[1]
+    TAG_DICTIONARY[_tag] = _idx
+    TAG_DICT_SIZE += 1
+print (u'loading tag dictionary from %s done..' % NYT_TAG_DICT_PATH)
+
+
+# sentences: [[word1, word2, ...], [], [], ..]
+def padding_document(sentences):
+    if len(sentences) > MAX_SENTENCES_IN_DOCUMENT:
+        sentences = sentences[:MAX_SENTENCES_IN_DOCUMENT]
+    elif len(sentences) < MAX_SENTENCES_IN_DOCUMENT:
+        nb_sentences_padding = MAX_SENTENCES_IN_DOCUMENT - len(sentences)
+        sentences = [[PADDING_WORD] * MAX_WORDS_IN_SENTENCE] * nb_sentences_padding + sentences
+    for i in range(len(sentences)):
+        nb_words = len(sentences[i])
+        if nb_words > MAX_WORDS_IN_SENTENCE:
+            sentences[i] = sentences[i][:MAX_WORDS_IN_SENTENCE]
+        elif nb_words < MAX_WORDS_IN_SENTENCE:
+            nb_words_padding = MAX_WORDS_IN_SENTENCE - nb_words
+            sentences[i] = [PADDING_WORD] * nb_words_padding + sentences[i]
+        sentences[i] = [DICTIONARY[word] if word in DICTIONARY else PADDING_WORD_IDX for word in sentences[i]]
+    return reduce(list.__add__, sentences)
+
+
+X_ALL_PATH = ur'../data/nyt/x_all.txt'
+Y_ALL_PATH = ur'../data/nyt/y_all.txt'
+
+
+def transform_structured_nyt_to_regular_data(structured_nyt_path, structured_nyt_stat_path, x_all_path, y_all_path):
+    from codecs import open
+    with open(structured_nyt_stat_path, encoding='utf8') as stat, \
+            open(structured_nyt_path, encoding='utf8') as nyt, \
+            open(x_all_path, 'w', encoding='utf8') as x_all, \
+            open(y_all_path, 'w', encoding='utf8') as y_all:
+        for stat_line in itertools.islice(stat, 2, None, 3):
+            if not stat_line[0].isdigit():
+                break
+            nb_sentence = sum([int(cnt) for cnt in stat_line.split()[1:]])
+            y_all.write(u' '.join([TAG_DICTIONARY[tag] for tag in nyt.readline().split()]) + u'\n')
+            sentences = []
+            for i in range(nb_sentence):
+                sentences.append(nyt.readline().split())
+            x_all.write(u' '.join([str(idx) for idx in padding_document(sentences)]) + u'\n')
+
+
 if __name__ == '__main__':
     # merge_nyt_to_single_file(NYT_PATH, NYT_SINGLE_FILE_PATH)
-    # structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
-    #                                     STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH)
+    structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
+                                        STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH)
     # calc_words_less_than_max_percentage()
     # calc_sentences_less_than_max_percentage()
     # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_DICT_PATH)
     # get_nyt_word_embeddings(NYT_DICT_PATH, NYT_WORD_EMBEDDING_PATH)
+    # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_IGNORE_CASE_DICT_PATH, ignore_case=True)
+    # get_nyt_word_embeddings(NYT_IGNORE_CASE_DICT_PATH, NYT_IGNORE_CASE_WORD_EMBEDDING_PATH)
+    # print (padding_document([[u'hello', u'world'], [], [u'a', u'b']]))
+    # get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
     pass
