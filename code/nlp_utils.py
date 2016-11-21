@@ -1,8 +1,8 @@
 # coding=utf8
 import re
 import nltk.data
-from nltk.tokenize.treebank import TreebankWordTokenizer
-from nltk.corpus import stopwords
+# from nltk.tokenize.treebank import TreebankWordTokenizer
+# from nltk.corpus import stopwords
 import jieba
 
 caps = u"([A-Z])"
@@ -61,10 +61,10 @@ def split_into_sentences_by_nltk(text):
     return sentences
 
 
-english_punctuations = \
-    {u',', u'.', u':', u';', u'?', u'(', u')', u'[', u']', u'&', u'!', u'*', u'@', u'#', u'$', u'%', u'-'}
-english_stopwords = set(stopwords.words(u'english'))
-word_tokenizer = TreebankWordTokenizer().tokenize
+# english_punctuations = \
+#     {u',', u'.', u':', u';', u'?', u'(', u')', u'[', u']', u'&', u'!', u'*', u'@', u'#', u'$', u'%', u'-'}
+# english_stopwords = set(stopwords.words(u'english'))
+# word_tokenizer = TreebankWordTokenizer().tokenize
 
 
 def tokenize(text):
