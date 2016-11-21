@@ -352,7 +352,7 @@ def read_y(file_path):
     for line in open(file_path):
         # normalization of the distribution
         points = [int(idx) for idx in line.split()]
-        v = numpy.array(TAG_DICT_SIZE, dtype='float32')
+        v = numpy.zeros((TAG_DICT_SIZE,), dtype='float32')
         for idx in points:
             v[idx] = 1.0 / len(points)
         ans[i] = v
