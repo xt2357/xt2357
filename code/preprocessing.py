@@ -50,10 +50,11 @@ def merge_nyt_to_single_file(nyt_path, output_path):
 
 
 def extract_tags_from_url(url):
-    tags = [seg for seg in url.split(u'/') if seg.isalpha()]
-    tags = [u'-'.join(tags[:i + 1]) for i in range(len(tags))]
+    tags = [seg for seg in url.split(u'/') if seg.replace(u'-', u'').isalpha()]
+    tags = [u'#'.join(tags[:i + 1]) for i in range(len(tags))]
     if len(tags) > 3:
         tags = tags[:3]
+    assert len(tags) > 0, u'tag length == 0!'
     return tags
 
 
@@ -135,6 +136,8 @@ def get_nyt_dict(structured_nyt_path, output_dict_path, ignore_case=False):
         for item in res:
             output.write(u'%d %s %d\n' % (idx, item[0], item[1]))
             idx += 1
+    global DICTIONARY_LOADED
+    DICTIONARY_LOADED = False
 
 
 NYT_TAG_DICT_PATH = ur'../data/nyt/tag_dict.txt'
@@ -159,6 +162,8 @@ def get_nyt_tag_dict(structured_nyt_stat_path, nyt_tag_dict_path):
         for item in sorted_tags:
             dict_output.write(u'%d %s %d\n' % (idx, item[0], item[1]))
             idx += 1
+    global DICTIONARY_LOADED
+    DICTIONARY_LOADED = False
 
 
 NYT_WORD_EMBEDDING_PATH = ur'../data/nyt/nyt_word_embedding.txt'
@@ -340,6 +345,6 @@ if __name__ == '__main__':
     # print (padding_document([[u'hello', u'world'], [], [u'a', u'b']]))
     # get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
 
-    # transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
+    transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
     randomly_split_data(100000, X_ALL_PATH, Y_ALL_PATH, X_TRAIN_PATH, Y_TRAIN_PATH, X_EVAL_PATH, Y_EVAL_PATH)
     pass
