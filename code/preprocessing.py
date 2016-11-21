@@ -332,25 +332,31 @@ def randomly_split_data(eval_data_size, x_all_path, y_all_path, x_train_path, y_
 
 
 def read_x(file_path):
-    samples = []
+    cnt = 0
+    for _ in open(file_path):
+        cnt += 1
+    ans = numpy.zeros((cnt, MAX_WORDS_IN_SENTENCE * MAX_SENTENCES_IN_DOCUMENT))
+    i = 0
     for line in open(file_path):
-        samples.append(numpy.asarray(line.split(), dtype='int32'))
-    ans = numpy.zeros((len(samples), MAX_WORDS_IN_SENTENCE * MAX_SENTENCES_IN_DOCUMENT))
-    for i in range(len(samples)):
-        ans[i] = samples[i]
+        ans[i] = numpy.asarray(line.split(), dtype='int32')
+        i += 1
     return ans
 
 
 def read_y(file_path):
-    samples = []
+    cnt = 0
+    for _ in open(file_path):
+        cnt += 1
+    ans = numpy.zeros((cnt, TAG_DICT_SIZE))
+    i = 0
     for line in open(file_path):
         # normalization of the distribution
-        point = numpy.asarray(line.split(), dtype='float32')
-        point /= numpy.sum(point, axis=-1)
-        samples.append(point)
-    ans = numpy.zeros((len(samples), TAG_DICT_SIZE))
-    for i in range(len(samples)):
-        ans[i] = samples[i]
+        points = [int(idx) for idx in line.split()]
+        v = numpy.array(TAG_DICT_SIZE, dtype='float32')
+        for idx in points:
+            v[idx] = 1.0 / len(points)
+        ans[i] = v
+        i += 1
     return ans
 
 
@@ -364,12 +370,12 @@ if __name__ == '__main__':
     # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_DICT_PATH)
     # get_nyt_word_embeddings(NYT_DICT_PATH, NYT_WORD_EMBEDDING_PATH)
 
-    get_nyt_dict(STRUCTURED_NYT_PATH, NYT_IGNORE_CASE_DICT_PATH, ignore_case=True)
-    get_nyt_word_embeddings(NYT_IGNORE_CASE_DICT_PATH, NYT_IGNORE_CASE_WORD_EMBEDDING_PATH)
+    # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_IGNORE_CASE_DICT_PATH, ignore_case=True)
+    # get_nyt_word_embeddings(NYT_IGNORE_CASE_DICT_PATH, NYT_IGNORE_CASE_WORD_EMBEDDING_PATH)
 
     # print (padding_document([[u'hello', u'world'], [], [u'a', u'b']]))
-    get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
+    # get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
 
-    transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
-    randomly_split_data(100000, X_ALL_PATH, Y_ALL_PATH, X_TRAIN_PATH, Y_TRAIN_PATH, X_EVAL_PATH, Y_EVAL_PATH)
+    # transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
+    # randomly_split_data(100000, X_ALL_PATH, Y_ALL_PATH, X_TRAIN_PATH, Y_TRAIN_PATH, X_EVAL_PATH, Y_EVAL_PATH)
     pass
