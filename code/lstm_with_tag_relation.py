@@ -5,6 +5,7 @@ from keras.regularizers import l2
 from keras.models import Sequential
 from keras import backend as K
 import numpy
+import codecs
 import preprocessing
 
 
@@ -84,6 +85,25 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
     return model
 
 
+def get_embedding_weights(nyt_word_embedding_path):
+    index2embedding = {}
+    cnt = 0
+    for line in codecs.open(nyt_word_embedding_path, encoding='utf8'):
+        # load the most DICT_SIZE frequent words embeddings into embedding layer
+        if cnt >= preprocessing.DICT_SIZE:
+            break
+        cnt += 1
+        values = line.split()
+        idx = int(values[0])
+        coefs = numpy.asarray(values[3:], dtype='float32')
+        index2embedding[idx] = coefs
+    assert len(index2embedding) == preprocessing.DICT_SIZE, u'word dict size not correct!'
+    embedding_weights = numpy.zeros((len(index2embedding), preprocessing.NYT_WORD_EMBEDDING_DIM))
+    for i, cof in index2embedding.iteritems():
+        embedding_weights[i] = cof
+    return [embedding_weights]
+
+
 def test_mask_model():
     inner_model = Sequential()
     inner_model.add(Masking(input_shape=(3, 4)))
@@ -107,8 +127,12 @@ def test_mask():
 
 def main():
     model = masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT, preprocessing.MAX_WORDS_IN_SENTENCE,
-                                   preprocessing.DICT_SIZE, None, 300, 600, preprocessing.TAG_DICT_SIZE)
-
+                                   preprocessing.DICT_SIZE,
+                                   get_embedding_weights(preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
+                                   preprocessing.NYT_WORD_EMBEDDING_DIM, 600,
+                                   preprocessing.TAG_DICT_SIZE)
+    # model.save_weights(u'../models/model_weights.h5')
+    # model.load_weights(u'../models/model_weights.h5')
 
 if __name__ == '__main__':
     main()

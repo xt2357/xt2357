@@ -4,6 +4,7 @@ import re
 import sys
 import itertools
 import codecs
+import numpy
 from keras.utils import np_utils
 import nlp_utils
 
@@ -120,7 +121,7 @@ NYT_IGNORE_CASE_DICT_PATH = ur'../data/nyt/nyt_ignore_case_dict.txt'
 
 def get_nyt_dict(structured_nyt_path, output_dict_path, ignore_case=False):
     from codecs import open
-    nyt_dict = {u'': sys.maxint}
+    nyt_dict = {PADDING_WORD: sys.maxint}
     for line in open(structured_nyt_path, encoding='utf8'):
         for word in line.split():
             if ignore_case:
@@ -168,22 +169,23 @@ def get_nyt_tag_dict(structured_nyt_stat_path, nyt_tag_dict_path):
 
 NYT_WORD_EMBEDDING_PATH = ur'../data/nyt/nyt_word_embedding.txt'
 NYT_IGNORE_CASE_WORD_EMBEDDING_PATH = ur'../data/nyt/nyt_ignore_case_word_embedding.txt'
+NYT_WORD_EMBEDDING_DIM = 300
 
 
 def get_nyt_word_embeddings(nyt_dict_path, output_embedding_path):
     from gensim.models import word2vec
     from codecs import open
     model = word2vec.Word2Vec.load_word2vec_format(ur'..\models\GoogleNews-vectors-negative300.bin', binary=True)
-    word_embedding_dim = 300
+    word_embedding_dim = NYT_WORD_EMBEDDING_DIM
     with open(output_embedding_path, 'w', encoding='utf8') as output:
         v = [0.0] * word_embedding_dim
         for line in open(nyt_dict_path, encoding='utf8'):
             word = line.split()[1]
             output.write(line.strip() + u' ')
-            if word in model:
-                output.write(u' '.join([str(component) for component in model[word]]) + u'\n')
-            else:
+            if word == PADDING_WORD or word not in model:
                 output.write(u' '.join([str(component) for component in v]) + u'\n')
+            else:
+                output.write(u' '.join([str(component) for component in model[word]]) + u'\n')
 
 
 # (21946236, 21341986) words in sentences: (sentence cnt, less than 48 cnt)
@@ -214,8 +216,8 @@ def calc_sentences_less_than_max_percentage():
 
 DICTIONARY_LOADED = False
 DICT_SIZE = 200000
-# use empty string for padding when word are not in dictionary
-PADDING_WORD = u''
+# use specific string for padding when word are not in dictionary
+PADDING_WORD = u'-'
 PADDING_WORD_IDX = 0
 DICTIONARY = {}
 TAG_DICT_SIZE = 0
@@ -329,6 +331,29 @@ def randomly_split_data(eval_data_size, x_all_path, y_all_path, x_train_path, y_
             y_eval.write(y)
 
 
+def read_x(file_path):
+    samples = []
+    for line in open(file_path):
+        samples.append(numpy.asarray(line.split(), dtype='int32'))
+    ans = numpy.zeros((len(samples), MAX_WORDS_IN_SENTENCE * MAX_SENTENCES_IN_DOCUMENT))
+    for i in range(len(samples)):
+        ans[i] = samples[i]
+    return ans
+
+
+def read_y(file_path):
+    samples = []
+    for line in open(file_path):
+        # normalization of the distribution
+        point = numpy.asarray(line.split(), dtype='float32')
+        point /= numpy.sum(point, axis=-1)
+        samples.append(point)
+    ans = numpy.zeros((len(samples), TAG_DICT_SIZE))
+    for i in range(len(samples)):
+        ans[i] = samples[i]
+    return ans
+
+
 if __name__ == '__main__':
     # merge_nyt_to_single_file(NYT_PATH, NYT_SINGLE_FILE_PATH)
     # structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
@@ -339,11 +364,11 @@ if __name__ == '__main__':
     # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_DICT_PATH)
     # get_nyt_word_embeddings(NYT_DICT_PATH, NYT_WORD_EMBEDDING_PATH)
 
-    # get_nyt_dict(STRUCTURED_NYT_PATH, NYT_IGNORE_CASE_DICT_PATH, ignore_case=True)
-    # get_nyt_word_embeddings(NYT_IGNORE_CASE_DICT_PATH, NYT_IGNORE_CASE_WORD_EMBEDDING_PATH)
+    get_nyt_dict(STRUCTURED_NYT_PATH, NYT_IGNORE_CASE_DICT_PATH, ignore_case=True)
+    get_nyt_word_embeddings(NYT_IGNORE_CASE_DICT_PATH, NYT_IGNORE_CASE_WORD_EMBEDDING_PATH)
 
     # print (padding_document([[u'hello', u'world'], [], [u'a', u'b']]))
-    # get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
+    get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
 
     transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
     randomly_split_data(100000, X_ALL_PATH, Y_ALL_PATH, X_TRAIN_PATH, Y_TRAIN_PATH, X_EVAL_PATH, Y_EVAL_PATH)
