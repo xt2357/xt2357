@@ -1,4 +1,5 @@
 # coding=utf8
+import sys
 import lstm_with_tag_relation as my_model
 import preprocessing
 import nlp_utils
@@ -50,17 +51,54 @@ def text_predict(trained_model, text, threshold):
     return [(preprocessing.TAG_IDX_TO_NAME[idx], confidence) for idx, confidence in tags]
 
 
-def sample_based_validation(x_eval, y_eval, trained_model, threshold, hamming_loss=True):
+def sample_based_validation(x_eval, y_eval, trained_model, threshold):
     y_pred = trained_model.predict(x_eval)
     y_pred *= y_pred > threshold
     numpy.ceil(y_pred, y_pred)
     numpy.ceil(y_eval, y_eval)
     symmetric_diff = numpy.abs(y_pred - y_eval)
-    if not hamming_loss:
-        return numpy.sum(numpy.sum(symmetric_diff, axis=-1).clip(0.0, 1.0)) / x_eval.shape[0]
-    else:
-        return numpy.sum(symmetric_diff) / x_eval.shape[0]
+    print (numpy.sum(numpy.sum(symmetric_diff, axis=-1).clip(0.0, 1.0)) / x_eval.shape[0])
+    print (u'-------hamming loss---------\n')
+    print (numpy.sum(symmetric_diff) / x_eval.shape[0])
 
+
+def evaluation():
+    model = my_model.masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
+                                            preprocessing.MAX_WORDS_IN_SENTENCE,
+                                            preprocessing.DICT_SIZE,
+                                            my_model.get_embedding_weights(
+                                                preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
+                                            preprocessing.NYT_WORD_EMBEDDING_DIM, 400, preprocessing.TAG_DICT_SIZE)
+    model.load_weights(MODEL_WEIGHTS_PATH)
+    x_eval, y_eval = \
+        preprocessing.read_x(preprocessing.X_EVAL_PATH), preprocessing.read_y(preprocessing.Y_EVAL_PATH)
+    print (u'eval data loaded')
+    sample_based_validation(x_eval, y_eval, model, 1/4.0)
+
+
+def print_relation():
+    model = my_model.masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
+                                            preprocessing.MAX_WORDS_IN_SENTENCE,
+                                            preprocessing.DICT_SIZE,
+                                            my_model.get_embedding_weights(
+                                                preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
+                                            preprocessing.NYT_WORD_EMBEDDING_DIM, 400, preprocessing.TAG_DICT_SIZE)
+    model.load_weights(MODEL_WEIGHTS_PATH)
+    print (model.get_layer(u'relation').get_weights())
+
+
+def print_usage():
+    print (u'usage: python main.py train for training\n'
+           u'       python main.py eval for evaluation\n')
 
 if __name__ == '__main__':
-    train()
+    print_relation()
+    if len(sys.argv) < 2:
+        print_usage()
+    elif sys.argv[1] == u'train':
+        train()
+    elif sys.argv[1] == u'eval':
+        evaluation()
+    else:
+        print_usage()
+

@@ -3,6 +3,7 @@ from keras.layers import Input, Embedding, LSTM, Dense, TimeDistributed, Activat
 from keras.models import Model
 from keras.regularizers import l2
 from keras.models import Sequential
+from keras.constraints import unitnorm
 from keras import backend as K
 import numpy
 import codecs
@@ -66,7 +67,7 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
                          activation=u'sigmoid', inner_activation=u'hard_sigmoid')
     sentence_lstm_model.add(sentence_lstm)
     relation_layer = Dense(output_dim=document_embedding_dim, input_shape=(document_embedding_dim,),
-                           name=u'relation', bias=False, W_regularizer=l2(0.01))
+                           name=u'relation', bias=False, W_regularizer=l2(0.01), W_constraint=unitnorm())
     total_words = nb_words * nb_sentence
     input_layer = Input(shape=(total_words,))
     embedding_layer = \
