@@ -5,52 +5,6 @@ import nltk.data
 # from nltk.corpus import stopwords
 import jieba
 
-caps = u"([A-Z])"
-prefixes = u"(Mr|St|Mrs|Ms|Dr)[.]"
-suffixes = u"(Inc|Ltd|Jr|Sr|Co)"
-starters = u"(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
-acronyms = u"([A-Z][.][A-Z][.](?:[A-Z][.])?)"
-websites = u"[.](com|net|org|io|gov)"
-digits = u"([0-9])"
-
-
-def split_into_sentences(text):
-    text = text.strip()
-    # ensure at least one sentence is returned
-    assert len(text) > 0
-    if text[-1].isalnum():
-        text += u'.'
-    text = u" " + text + u"  "
-    text = text.replace(u"\n", u" ")
-    text = re.sub(prefixes, u"\\1<prd>", text)
-    text = re.sub(websites, u"<prd>\\1", text)
-    text = re.sub(digits + u"[.]" + digits, u"\\1<prd>\\2", text)
-    if u"Ph.D" in text:
-        text = text.replace(u"Ph.D.", u"Ph<prd>D<prd>")
-    text = re.sub(u"\s" + caps + u"[.] ", u" \\1<prd> ", text)
-    text = re.sub(acronyms + u" " + starters, u"\\1<stop> \\2", text)
-    text = re.sub(caps + u"[.]" + caps + u"[.]" + caps + u"[.]", u"\\1<prd>\\2<prd>\\3<prd>", text)
-    text = re.sub(caps + u"[.]" + caps + u"[.]", u"\\1<prd>\\2<prd>", text)
-    text = re.sub(u" " + suffixes + u"[.] " + starters, u" \\1<stop> \\2", text)
-    text = re.sub(u" " + suffixes + u"[.]", u" \\1<prd>", text)
-    text = re.sub(u" " + caps + u"[.]", u" \\1<prd>", text)
-    if u"”" in text:
-        text = text.replace(u".”", u"”.")
-    if u"\"" in text:
-        text = text.replace(u".\"", u"\".")
-    if u"!" in text:
-        text = text.replace(u"!\"", u"\"!")
-    if u"?" in text:
-        text = text.replace(u"?\"", u"\"?")
-    text = text.replace(u".", u".<stop>")
-    text = text.replace(u"?", u"?<stop>")
-    text = text.replace(u"!", u"!<stop>")
-    text = text.replace(u"<prd>", u".")
-    sentences = text.split(u"<stop>")
-    sentences = sentences[:-1]
-    sentences = [s.strip() for s in sentences]
-    return sentences
-
 
 nltk_sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle').tokenize
 
@@ -75,6 +29,11 @@ sentence_pattern = re.compile(ur'.*[0-9A-Za-z]+.*', re.UNICODE)
 
 
 def split_into_paragraph_sentence_token(text):
+    """
+    split the whole text into [[[[word], [word], ..], [sentence], ..], [paragraph], ..]
+    treat every non-empty line as a paragraph
+    :rtype: [[[[word], [word], ..], [sentence], ..], [paragraph], ..]
+    """
     result = \
         [[tokenize(sentence) for sentence in split_into_sentences_by_nltk(paragraph)
           if sentence_pattern.match(sentence)]

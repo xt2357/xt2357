@@ -1,7 +1,9 @@
 # coding=utf8
 import lstm_with_tag_relation as my_model
 import preprocessing
+import nlp_utils
 import codecs
+import numpy
 from keras.callbacks import EarlyStopping
 
 
@@ -9,7 +11,7 @@ MODEL_WEIGHTS_PATH = u'../models/model_weights.h5'
 HISTORY_PATH = u'../models/train_history.txt'
 
 
-def main():
+def train():
     model = my_model.masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
                                             preprocessing.MAX_WORDS_IN_SENTENCE,
                                             preprocessing.DICT_SIZE,
@@ -24,7 +26,7 @@ def main():
     print (u'eval data loaded')
     early_stopping = EarlyStopping(monitor='val_loss', patience=2)
     history = model.fit(x_train, y_train, callbacks=[early_stopping], validation_data=(x_eval, y_eval),
-                        nb_epoch=5, batch_size=64)
+                        nb_epoch=4, batch_size=64)
     model.save_weights(MODEL_WEIGHTS_PATH)
     print (u'model saved to %s' % MODEL_WEIGHTS_PATH)
     print (history.history)
@@ -32,5 +34,33 @@ def main():
         history_output.write(unicode(history.history))
 
 
+def text_predict(trained_model, text, threshold):
+    # replace all the \n to make the whole text a single paragraph
+    structure = nlp_utils.split_into_paragraph_sentence_token(text.replace(u'\n', u''))
+    sentences = structure[0]
+    input_v = preprocessing.padding_document(sentences)
+    output_v = trained_model.predict([input_v])[0]
+    output_v *= output_v > threshold
+    idx = 0
+    tags = []
+    for confidence in output_v:
+        if confidence > 0.0:
+            tags.append((idx, confidence))
+        idx += 1
+    return [(preprocessing.TAG_IDX_TO_NAME[idx], confidence) for idx, confidence in tags]
+
+
+def sample_based_validation(x_eval, y_eval, trained_model, threshold, hamming_loss=True):
+    y_pred = trained_model.predict(x_eval)
+    y_pred *= y_pred > threshold
+    numpy.ceil(y_pred, y_pred)
+    numpy.ceil(y_eval, y_eval)
+    symmetric_diff = numpy.abs(y_pred - y_eval)
+    if not hamming_loss:
+        return numpy.sum(numpy.sum(symmetric_diff, axis=-1).clip(0.0, 1.0)) / x_eval.shape[0]
+    else:
+        return numpy.sum(symmetric_diff) / x_eval.shape[0]
+
+
 if __name__ == '__main__':
-    main()
+    train()

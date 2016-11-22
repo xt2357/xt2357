@@ -129,7 +129,7 @@ def main():
     model = masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT, preprocessing.MAX_WORDS_IN_SENTENCE,
                                    preprocessing.DICT_SIZE,
                                    get_embedding_weights(preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
-                                   preprocessing.NYT_WORD_EMBEDDING_DIM, 600,
+                                   preprocessing.NYT_WORD_EMBEDDING_DIM, 400,
                                    preprocessing.TAG_DICT_SIZE)
     # model.save_weights(u'../models/model_weights.h5')
     # model.load_weights(u'../models/model_weights.h5')

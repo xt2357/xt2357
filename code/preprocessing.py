@@ -220,8 +220,10 @@ DICT_SIZE = 200000
 PADDING_WORD = u'-'
 PADDING_WORD_IDX = 0
 DICTIONARY = {}
+IDX_TO_WORD = {}
 TAG_DICT_SIZE = 0
 TAG_DICTIONARY = {}
+TAG_IDX_TO_NAME = {}
 
 
 def load_dictionaries():
@@ -237,6 +239,7 @@ def load_dictionaries():
         _word = dictionary_line.split()[1]
         _idx = int(dictionary_line.split()[0])
         DICTIONARY[_word] = _idx
+        IDX_TO_WORD[_idx] = _word
         _cnt += 1
     print (u'loading dictionary from %s done..' % NYT_IGNORE_CASE_DICT_PATH)
 
@@ -245,6 +248,7 @@ def load_dictionaries():
         _idx = int(tag_dictionary_line.split()[0])
         _tag = tag_dictionary_line.split()[1]
         TAG_DICTIONARY[_tag] = _idx
+        TAG_IDX_TO_NAME[_idx] = _tag
         TAG_DICT_SIZE += 1
     print (u'loading tag dictionary from %s done..' % NYT_TAG_DICT_PATH)
     DICTIONARY_LOADED = True
