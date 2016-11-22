@@ -58,8 +58,11 @@ def sample_based_validation(x_eval, y_eval, trained_model, threshold):
     numpy.ceil(y_eval, y_eval)
     symmetric_diff = numpy.abs(y_pred - y_eval)
     print (numpy.sum(numpy.sum(symmetric_diff, axis=-1).clip(0.0, 1.0)) / x_eval.shape[0])
-    print (u'-------hamming loss---------\n')
+    print (u'-------hamming loss---------')
     print (numpy.sum(symmetric_diff) / x_eval.shape[0])
+
+
+THRESHOLD = 1 / 5.0
 
 
 def evaluation():
@@ -73,7 +76,7 @@ def evaluation():
     x_eval, y_eval = \
         preprocessing.read_x(preprocessing.X_EVAL_PATH), preprocessing.read_y(preprocessing.Y_EVAL_PATH)
     print (u'eval data loaded')
-    sample_based_validation(x_eval, y_eval, model, 1/4.0)
+    sample_based_validation(x_eval, y_eval, model, THRESHOLD)
 
 
 def print_relation():
@@ -89,7 +92,7 @@ def print_relation():
 
 def print_usage():
     print (u'usage: python main.py train for training\n'
-           u'       python main.py eval for evaluation\n')
+           u'       python main.py eval for evaluation')
 
 if __name__ == '__main__':
     print_relation()
