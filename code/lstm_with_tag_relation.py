@@ -3,7 +3,7 @@ from keras.layers import Input, Embedding, LSTM, Dense, TimeDistributed, Activat
 from keras.models import Model
 from keras.regularizers import l2
 from keras.models import Sequential
-from keras.constraints import unitnorm
+from keras.constraints import unitnorm, maxnorm
 from keras import backend as K
 import numpy
 import codecs
@@ -79,7 +79,7 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
     output_layer = Activation(activation=u'softmax')(adjusted_score_layer)
 
     def masked_simplified_lstm_loss(y_true, y_pred):
-        return K.categorical_crossentropy(y_pred, y_true) - K.sum(y_true * relation_layer.call(y_true), axis=-1)
+        return K.categorical_crossentropy(y_pred, y_true) - K.sum(y_true * relation_layer.call(y_pred), axis=-1)
 
     model = Model(input=input_layer, output=output_layer)
     model.compile(loss=masked_simplified_lstm_loss, optimizer='rmsprop')

@@ -335,15 +335,19 @@ def randomly_split_data(eval_data_size, x_all_path, y_all_path, x_train_path, y_
             y_eval.write(y)
 
 
-def read_x(file_path):
+def read_x(file_path, size=None):
     cnt = 0
     for _ in open(file_path):
+        if size and cnt == size:
+            break
         cnt += 1
     ans = numpy.zeros((cnt, MAX_WORDS_IN_SENTENCE * MAX_SENTENCES_IN_DOCUMENT))
     i = 0
     for line in open(file_path):
         ans[i] = numpy.asarray(line.split(), dtype='int32')
         i += 1
+        if i == cnt:
+            break
     return ans
 
 

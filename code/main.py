@@ -53,7 +53,7 @@ def text_predict(trained_model, text, threshold):
 
 def sample_based_validation(x_eval, y_eval, trained_model, threshold):
     y_pred = trained_model.predict(x_eval)
-    y_pred *= y_pred > threshold
+    y_pred *= y_pred >= threshold
     numpy.ceil(y_pred, y_pred)
     numpy.ceil(y_eval, y_eval)
     symmetric_diff = numpy.abs(y_pred - y_eval)
@@ -62,10 +62,7 @@ def sample_based_validation(x_eval, y_eval, trained_model, threshold):
     print (numpy.sum(symmetric_diff) / x_eval.shape[0])
 
 
-THRESHOLD = 1 / 5.0
-
-
-def evaluation():
+def evaluation(threshold):
     model = my_model.masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
                                             preprocessing.MAX_WORDS_IN_SENTENCE,
                                             preprocessing.DICT_SIZE,
@@ -76,7 +73,30 @@ def evaluation():
     x_eval, y_eval = \
         preprocessing.read_x(preprocessing.X_EVAL_PATH), preprocessing.read_y(preprocessing.Y_EVAL_PATH)
     print (u'eval data loaded')
-    sample_based_validation(x_eval, y_eval, model, THRESHOLD)
+    sample_based_validation(x_eval, y_eval, model, threshold)
+
+
+def batch_evaluation(batch_size):
+    model = my_model.masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
+                                            preprocessing.MAX_WORDS_IN_SENTENCE,
+                                            preprocessing.DICT_SIZE,
+                                            my_model.get_embedding_weights(
+                                                preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
+                                            preprocessing.NYT_WORD_EMBEDDING_DIM, 400, preprocessing.TAG_DICT_SIZE)
+    model.load_weights(MODEL_WEIGHTS_PATH)
+    x_eval = preprocessing.read_x(preprocessing.X_EVAL_PATH, size=batch_size)
+    y = model.predict(x_eval)
+    with open('../data/nyt/batch_y.txt', 'w') as f:
+        for output_v in y:
+            idx = 0
+            tags = []
+            for confidence in output_v:
+                if confidence > 0.0:
+                    tags.append((idx, confidence))
+                idx += 1
+            tags.sort(lambda a, b: cmp(a[1], b[1]), reverse=True)
+            f.write(str(tags))
+            f.write('\n')
 
 
 def print_relation():
@@ -101,7 +121,9 @@ if __name__ == '__main__':
     elif sys.argv[1] == u'train':
         train()
     elif sys.argv[1] == u'eval':
-        evaluation()
+        evaluation(float(sys.argv[2]))
+    elif sys.argv[1] == u'batch_eval':
+        batch_evaluation(int(sys.argv[2]))
     else:
         print_usage()
 
