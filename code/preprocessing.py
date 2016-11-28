@@ -279,6 +279,9 @@ def padding_document(sentences):
 X_ALL_PATH = ur'../data/nyt/x_all.txt'
 Y_ALL_PATH = ur'../data/nyt/y_all.txt'
 
+# the most 128th frequent tags are meaningful, others are ignored
+MEANINGFUL_TAG_SIZE = 128
+
 
 def transform_structured_nyt_to_regular_data(structured_nyt_path, structured_nyt_stat_path, x_all_path, y_all_path):
     load_dictionaries()
@@ -291,11 +294,16 @@ def transform_structured_nyt_to_regular_data(structured_nyt_path, structured_nyt
             if not stat_line[0].isdigit():
                 break
             nb_sentence = sum([int(cnt) for cnt in stat_line.split()[1:]])
-            y_all.write(u' '.join([str(TAG_DICTIONARY[tag]) for tag in nyt.readline().split()]) + u'\n')
+            tags = [TAG_DICTIONARY[tag] for tag in nyt.readline().split()]
             sentences = []
             for i in range(nb_sentence):
                 sentences.append(nyt.readline().split())
+            # ignore tags rarely appeared
+            tags = [tag for tag in tags if tag < MEANINGFUL_TAG_SIZE]
+            if len(tags) == 0:
+                continue
             x_all.write(u' '.join([str(idx) for idx in padding_document(sentences)]) + u'\n')
+            y_all.write(u' '.join([str(tag) for tag in tags]) + u'\n')
 
 
 X_TRAIN_PATH = ur'../data/nyt/x_train.txt'
@@ -384,6 +392,6 @@ if __name__ == '__main__':
     # print (padding_document([[u'hello', u'world'], [], [u'a', u'b']]))
     # get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
 
-    # transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
-    # randomly_split_data(100000, X_ALL_PATH, Y_ALL_PATH, X_TRAIN_PATH, Y_TRAIN_PATH, X_EVAL_PATH, Y_EVAL_PATH)
+    transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
+    randomly_split_data(50000, X_ALL_PATH, Y_ALL_PATH, X_TRAIN_PATH, Y_TRAIN_PATH, X_EVAL_PATH, Y_EVAL_PATH)
     pass

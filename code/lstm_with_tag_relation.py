@@ -8,6 +8,7 @@ from keras import backend as K
 import numpy
 import codecs
 import preprocessing
+import nlp_utils
 from keras.callbacks import EarlyStopping
 
 
@@ -50,12 +51,12 @@ def new_model():
     return masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
                                   preprocessing.MAX_WORDS_IN_SENTENCE,
                                   preprocessing.DICT_SIZE,
-                                  get_embedding_weights(
+                                  read_embedding_weights(
                                       preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
-                                  preprocessing.NYT_WORD_EMBEDDING_DIM, 400, preprocessing.TAG_DICT_SIZE)
+                                  preprocessing.NYT_WORD_EMBEDDING_DIM, 400, preprocessing.MEANINGFUL_TAG_SIZE)
 
 
-def get_embedding_weights(nyt_word_embedding_path):
+def read_embedding_weights(nyt_word_embedding_path):
     index2embedding = {}
     cnt = 0
     for line in codecs.open(nyt_word_embedding_path, encoding='utf8'):
@@ -94,6 +95,33 @@ def train():
     print (history.history)
     with codecs.open(HISTORY_PATH, 'w', 'utf8') as history_output:
         history_output.write(unicode(history.history))
+
+
+def text_predict(trained_model, text, cutoff=10):
+    # replace all the \n to make the whole text a single paragraph
+    structure = nlp_utils.split_into_paragraph_sentence_token(text.replace(u'\n', u''))
+    sentences = structure[0]
+    input_v = preprocessing.padding_document(sentences)
+    output_v = trained_model.predict([input_v])[0]
+    numpy.sort(output_v)
+    idx = len(output_v) - 1
+    tags = []
+    while True:
+        if idx < 0 or len(output_v) - idx > cutoff:
+            break
+        tags.append((idx, output_v[idx]))
+        idx -= 1
+    return [(preprocessing.TAG_IDX_TO_NAME[idx], confidence) for idx, confidence in tags]
+
+
+def derive_tag_indices_from_y(y, is_y_true=False):
+    ans = set()
+    threshold = 0.01 if is_y_true else 0.1
+    for idx in range(len(y)):
+        if y[idx] >= threshold:
+            ans.add(idx)
+        idx += 1
+    return ans
 
 
 def main():

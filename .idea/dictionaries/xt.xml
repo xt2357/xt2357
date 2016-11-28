@@ -9,6 +9,7 @@
       <w>readlines</w>
       <w>rmsprop</w>
       <w>softmax</w>
+      <w>unitnorm</w>
     </words>
   </dictionary>
 </component>

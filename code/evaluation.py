@@ -1,24 +1,7 @@
 # coding = utf8
 import lstm_with_tag_relation as my_model
-import nlp_utils
 import preprocessing
 import numpy
-
-
-def text_predict(trained_model, text, threshold):
-    # replace all the \n to make the whole text a single paragraph
-    structure = nlp_utils.split_into_paragraph_sentence_token(text.replace(u'\n', u''))
-    sentences = structure[0]
-    input_v = preprocessing.padding_document(sentences)
-    output_v = trained_model.predict([input_v])[0]
-    output_v *= output_v > threshold
-    idx = 0
-    tags = []
-    for confidence in output_v:
-        if confidence > 0.0:
-            tags.append((idx, confidence))
-        idx += 1
-    return [(preprocessing.TAG_IDX_TO_NAME[idx], confidence) for idx, confidence in tags]
 
 
 def sample_based_validation(x_eval, y_eval, trained_model, threshold):
@@ -32,18 +15,40 @@ def sample_based_validation(x_eval, y_eval, trained_model, threshold):
     print (numpy.sum(symmetric_diff) / x_eval.shape[0])
 
 
-def evaluation(threshold):
+def subset_evaluator(y_pred, y_true):
+    """
+    subset evaluator
+    """
+    return my_model.derive_tag_indices_from_y(y_pred) == my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
+
+
+def hamming_evaluator(y_pred, y_true):
+    """
+    hamming loss
+    """
+    return len(my_model.derive_tag_indices_from_y(y_true) ^ my_model.derive_tag_indices_from_y(y_pred))
+
+
+def evaluation(model_weights_path, evaluators):
     model = my_model.new_model()
-    model.load_weights(my_model.MODEL_WEIGHTS_PATH)
+    model.load_weights(model_weights_path)
     x_eval, y_eval = \
         preprocessing.read_x(preprocessing.X_EVAL_PATH), preprocessing.read_y(preprocessing.Y_EVAL_PATH)
     print (u'eval data loaded')
-    sample_based_validation(x_eval, y_eval, model, threshold)
+    y_pred = model.predict(x_eval)
+    print (u'all prediction done')
+    for evaluator in evaluators:
+        total_score = 0.0
+        for idx in range(len(y_pred)):
+            total_score += evaluator(y_pred[idx], y_eval[idx])
+        total_score /= len(y_pred)
+        print (evaluator.__doc__)
+        print (total_score)
 
 
-def batch_evaluation(batch_size):
+def batch_evaluation(model_weights_path, batch_size):
     model = my_model.new_model()
-    model.load_weights(my_model.MODEL_WEIGHTS_PATH)
+    model.load_weights(model_weights_path)
     x_eval = preprocessing.read_x(preprocessing.X_EVAL_PATH, size=batch_size)
     y = model.predict(x_eval)
     with open('../data/nyt/batch_y.txt', 'w') as f:
@@ -59,11 +64,13 @@ def batch_evaluation(batch_size):
             f.write('\n')
 
 
-def print_relation():
+def print_relation(model_weights_path):
     model = my_model.new_model()
-    model.load_weights(my_model.MODEL_WEIGHTS_PATH)
+    model.load_weights(model_weights_path)
     print (model.get_layer(u'relation').get_weights())
 
 
+UNITNORM_MODEL = ur'../models/model_weights_unitnorm.h5'
+
 if __name__ == '__main__':
-    pass
+    evaluation(UNITNORM_MODEL, [subset_evaluator, hamming_evaluator])
