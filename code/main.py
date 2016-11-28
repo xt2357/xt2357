@@ -17,8 +17,8 @@ if __name__ == '__main__':
     elif sys.argv[1] == u'eval':
         evaluation(float(sys.argv[2]))
     elif sys.argv[1] == u'batch_eval':
-        batch_evaluation(int(sys.argv[2]))
+        batch_evaluation(sys.argv[2], int(sys.argv[3]))
     elif sys.argv[1] == u'p_relation':
-        print_relation()
+        print_relation(sys.argv[2])
     else:
         print_usage()

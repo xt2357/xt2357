@@ -2,6 +2,7 @@
 import lstm_with_tag_relation as my_model
 import preprocessing
 import numpy
+import sys
 
 
 def sample_based_validation(x_eval, y_eval, trained_model, threshold):
@@ -27,6 +28,81 @@ def hamming_evaluator(y_pred, y_true):
     hamming loss
     """
     return len(my_model.derive_tag_indices_from_y(y_true) ^ my_model.derive_tag_indices_from_y(y_pred))
+
+
+def accuracy_evaluator(y_pred, y_true):
+    """
+    accuracy
+    """
+    pred_set = my_model.derive_tag_indices_from_y(y_pred)
+    true_set = my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
+    return len(pred_set & true_set) / float(len(pred_set | true_set))
+
+
+def precision_evaluator(y_pred, y_true):
+    """
+    precision
+    """
+    pred_set = my_model.derive_tag_indices_from_y(y_pred)
+    true_set = my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
+    if len(pred_set) == 0:
+        print (u'pred vec: %s' % y_pred)
+    return len(pred_set & true_set) / float(len(pred_set)) if len(pred_set) != 0 else 0.0
+
+
+def recall_evaluator(y_pred, y_true):
+    """
+    recall
+    """
+    pred_set = my_model.derive_tag_indices_from_y(y_pred)
+    true_set = my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
+    return len(pred_set & true_set) / float(len(true_set))
+
+
+def one_error_evaluator(y_pred, y_true):
+    """
+    ranking: one error
+    """
+    true_set = my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
+    asc_idx = numpy.argsort(y_pred)
+    return asc_idx[-1] not in true_set
+
+
+def coverage_evaluator(y_pred, y_true):
+    """
+    ranking: coverage
+    """
+    true_set = my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
+    asc_idx = numpy.argsort(y_pred)
+    cnt = 0
+    for idx in range(len(asc_idx) - 1, -1, -1):
+        if asc_idx[idx] in true_set:
+            cnt += 1
+        if len(true_set) == cnt:
+            return len(asc_idx) - idx
+
+
+def ranking_loss_evaluator(y_pred, y_true):
+    """
+    ranking: ranking loss
+    """
+    true_set = my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
+    others = set(range(preprocessing.MEANINGFUL_TAG_SIZE)) - true_set
+    reverse_pair = 0.0
+    for true in true_set:
+        for untrue in others:
+            if y_pred[true] <= y_pred[untrue]:
+                reverse_pair += 1
+    return reverse_pair / len(true_set) / len(others)
+
+
+# def average_precision_evaluator(y_pred, y_true):
+#     """
+#     ranking: average precision
+#     """
+#     true_set = my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
+#     asc_idx = numpy.argsort(y_pred)
+#     return 1
 
 
 def evaluation(model_weights_path, evaluators):
@@ -73,4 +149,6 @@ def print_relation(model_weights_path):
 UNITNORM_MODEL = ur'../models/model_weights_unitnorm.h5'
 
 if __name__ == '__main__':
-    evaluation(UNITNORM_MODEL, [subset_evaluator, hamming_evaluator])
+    evaluation(sys.argv[1],
+               [subset_evaluator, hamming_evaluator, accuracy_evaluator, precision_evaluator, recall_evaluator,
+                one_error_evaluator, coverage_evaluator, ranking_loss_evaluator])

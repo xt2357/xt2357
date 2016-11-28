@@ -363,17 +363,28 @@ def read_y(file_path):
     cnt = 0
     for _ in open(file_path):
         cnt += 1
-    ans = numpy.zeros((cnt, TAG_DICT_SIZE))
+    ans = numpy.zeros((cnt, MEANINGFUL_TAG_SIZE))
     i = 0
     for line in open(file_path):
         # normalization of the distribution
         points = [int(idx) for idx in line.split()]
-        v = numpy.zeros((TAG_DICT_SIZE,), dtype='float32')
+        v = numpy.zeros((MEANINGFUL_TAG_SIZE,), dtype='float32')
         for idx in points:
             v[idx] = 1.0 / len(points)
         ans[i] = v
         i += 1
     return ans
+
+
+def calc_average_tag_per_doc(structured_nyt_stat_path):
+    tag_sum, cnt = 0.0, 0
+    for stat_line in itertools.islice(codecs.open(structured_nyt_stat_path, encoding='utf8'), 1, None, 3):
+        if not stat_line.startswith(u'http'):
+            break
+        tags = [TAG_DICTIONARY[tag] for tag in extract_tags_from_url(stat_line)]
+        tags = [tag for tag in tags if tag < MEANINGFUL_TAG_SIZE]
+        tag_sum, cnt = tag_sum + len(tags), cnt + 1
+    print (u'average tag per document: %lf' % (tag_sum / cnt))
 
 
 if __name__ == '__main__':
@@ -392,6 +403,7 @@ if __name__ == '__main__':
     # print (padding_document([[u'hello', u'world'], [], [u'a', u'b']]))
     # get_nyt_tag_dict(STRUCTURED_NYT_STAT_PATH, NYT_TAG_DICT_PATH)
 
-    transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
-    randomly_split_data(50000, X_ALL_PATH, Y_ALL_PATH, X_TRAIN_PATH, Y_TRAIN_PATH, X_EVAL_PATH, Y_EVAL_PATH)
+    # transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
+    # randomly_split_data(50000, X_ALL_PATH, Y_ALL_PATH, X_TRAIN_PATH, Y_TRAIN_PATH, X_EVAL_PATH, Y_EVAL_PATH)
+    calc_average_tag_per_doc(STRUCTURED_NYT_STAT_PATH)
     pass

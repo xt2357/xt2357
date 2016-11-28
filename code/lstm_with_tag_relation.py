@@ -43,7 +43,7 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
         return K.categorical_crossentropy(y_pred, y_true)
 
     model = Model(input=input_layer, output=output_layer)
-    model.compile(loss=masked_simplified_lstm_loss_without_relation, optimizer='rmsprop')
+    model.compile(loss=masked_simplified_lstm_loss, optimizer='rmsprop')
     return model
 
 
@@ -79,17 +79,30 @@ MODEL_WEIGHTS_PATH = u'../models/model_weights.h5'
 HISTORY_PATH = u'../models/train_history.txt'
 
 
+def get_sample_weights_template():
+    v = numpy.zeros(preprocessing.MEANINGFUL_TAG_SIZE)
+    for line in open(preprocessing.NYT_TAG_DICT_PATH):
+        idx = int(line.split()[0])
+        if idx < preprocessing.MEANINGFUL_TAG_SIZE:
+            v[idx] = 1.0 / int(line.split()[2])
+    return v
+
+
 def train():
     model = new_model()
     x_train, y_train = \
         preprocessing.read_x(preprocessing.X_TRAIN_PATH), preprocessing.read_y(preprocessing.Y_TRAIN_PATH)
+    sample_weights = numpy.zeros(len(y_train))
+    template = get_sample_weights_template()
+    for i in range(len(y_train)):
+        sample_weights[i] = K.dot(y_train[i], template)
     print (u'train data loaded')
     x_eval, y_eval = \
         preprocessing.read_x(preprocessing.X_EVAL_PATH), preprocessing.read_y(preprocessing.Y_EVAL_PATH)
     print (u'eval data loaded')
     early_stopping = EarlyStopping(monitor='val_loss', patience=2)
     history = model.fit(x_train, y_train, callbacks=[early_stopping], validation_data=(x_eval, y_eval),
-                        nb_epoch=4, batch_size=64)
+                        nb_epoch=4, batch_size=64, sample_weight=sample_weights)
     model.save_weights(MODEL_WEIGHTS_PATH)
     print (u'model saved to %s' % MODEL_WEIGHTS_PATH)
     print (history.history)
@@ -120,7 +133,6 @@ def derive_tag_indices_from_y(y, is_y_true=False):
     for idx in range(len(y)):
         if y[idx] >= threshold:
             ans.add(idx)
-        idx += 1
     return ans
 
 
