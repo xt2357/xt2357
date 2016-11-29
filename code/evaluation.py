@@ -46,7 +46,7 @@ def precision_evaluator(y_pred, y_true):
     pred_set = my_model.derive_tag_indices_from_y(y_pred)
     true_set = my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
     if len(pred_set) == 0:
-        print (u'pred vec: %s' % y_pred)
+        print (u'predict set has no element, pred vec: %s' % y_pred)
     return len(pred_set & true_set) / float(len(pred_set)) if len(pred_set) != 0 else 0.0
 
 

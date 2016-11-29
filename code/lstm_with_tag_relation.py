@@ -13,18 +13,18 @@ from keras.callbacks import EarlyStopping
 
 
 def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weights,
-                           word_embedding_dim, sentence_embedding_dim, document_embedding_dim):
+                           word_embedding_dim, sentence_embedding_dim, document_embedding_dim, nb_tags):
     word_lstm_model = Sequential()
     word_lstm_model.add(Masking(input_shape=(nb_words, word_embedding_dim)))
     word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(None, word_embedding_dim),
-                     activation=u'sigmoid', inner_activation=u'hard_sigmoid')
+                     activation=u'tanh', inner_activation=u'hard_sigmoid')
     word_lstm_model.add(word_lstm)
     sentence_lstm_model = Sequential()
     sentence_lstm_model.add(Masking(input_shape=(nb_sentence, sentence_embedding_dim)))
     sentence_lstm = LSTM(output_dim=document_embedding_dim, input_shape=(None, sentence_embedding_dim),
-                         activation=u'sigmoid', inner_activation=u'hard_sigmoid')
+                         activation=u'tanh', inner_activation=u'hard_sigmoid')
     sentence_lstm_model.add(sentence_lstm)
-    relation_layer = Dense(output_dim=document_embedding_dim, input_shape=(document_embedding_dim,),
+    relation_layer = Dense(output_dim=nb_tags, input_shape=(nb_tags,),
                            name=u'relation', bias=False, W_regularizer=l2(0.01), W_constraint=unitnorm())
     total_words = nb_words * nb_sentence
     input_layer = Input(shape=(total_words,))
@@ -33,7 +33,9 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
     first_reshape = Reshape((nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
     sentence_embeddings = TimeDistributed(word_lstm_model)(first_reshape)
     document_embedding = sentence_lstm_model(sentence_embeddings)
-    adjusted_score_layer = relation_layer(document_embedding)
+    dense_layer = Dense(output_dim=nb_tags, input_shape=(document_embedding_dim,), activation=u'tanh',
+                        W_regularizer=l2(0.01))(document_embedding)
+    adjusted_score_layer = relation_layer(dense_layer)
     output_layer = Activation(activation=u'softmax')(adjusted_score_layer)
 
     def masked_simplified_lstm_loss(y_true, y_pred):
@@ -53,7 +55,7 @@ def new_model():
                                   preprocessing.DICT_SIZE,
                                   read_embedding_weights(
                                       preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
-                                  preprocessing.NYT_WORD_EMBEDDING_DIM, 400, preprocessing.MEANINGFUL_TAG_SIZE)
+                                  preprocessing.NYT_WORD_EMBEDDING_DIM, 400, 800, preprocessing.MEANINGFUL_TAG_SIZE)
 
 
 def read_embedding_weights(nyt_word_embedding_path):
@@ -92,17 +94,17 @@ def train():
     model = new_model()
     x_train, y_train = \
         preprocessing.read_x(preprocessing.X_TRAIN_PATH), preprocessing.read_y(preprocessing.Y_TRAIN_PATH)
-    sample_weights = numpy.zeros(len(y_train))
-    template = get_sample_weights_template()
-    for i in range(len(y_train)):
-        sample_weights[i] = K.dot(y_train[i], template)
+    # sample_weights = numpy.zeros(len(y_train))
+    # template = get_sample_weights_template()
+    # for i in range(len(y_train)):
+    #     sample_weights[i] = numpy.sum(y_train[i] * template)
     print (u'train data loaded')
     x_eval, y_eval = \
         preprocessing.read_x(preprocessing.X_EVAL_PATH), preprocessing.read_y(preprocessing.Y_EVAL_PATH)
     print (u'eval data loaded')
     early_stopping = EarlyStopping(monitor='val_loss', patience=2)
     history = model.fit(x_train, y_train, callbacks=[early_stopping], validation_data=(x_eval, y_eval),
-                        nb_epoch=4, batch_size=64, sample_weight=sample_weights)
+                        nb_epoch=4, batch_size=64, sample_weight=None)
     model.save_weights(MODEL_WEIGHTS_PATH)
     print (u'model saved to %s' % MODEL_WEIGHTS_PATH)
     print (history.history)
