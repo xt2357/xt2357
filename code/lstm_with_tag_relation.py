@@ -122,6 +122,7 @@ def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None):
             preprocessing.read_y(preprocessing.Y_TRAIN_PATH, sample_size)
         print (u'train data loaded')
     from scipy.optimize import leastsq
+    from numpy.linalg import lstsq
     model = new_model()
     print (u'lsq loading model %s' % trained_model_path)
     model.load_weights(trained_model_path)
@@ -156,11 +157,13 @@ def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None):
             (sorted_y_pred[i][pos] + (sorted_y_pred[i][pos - 1] if pos != 0 else sorted_y_pred[i][pos])) / 2.0
     print (u'optimal threshold retrieve done, average precision: %lf, average recall: %lf..'
            u'starting least square..' % (aver_precision, aver_recall))
+    amend_y_pred = numpy.column_stack((y_pred, numpy.ones(len(y_pred))))
 
     def lsq_func(threshold_lsq_coefficient):
-        return sorted_y_pred.dot(threshold_lsq_coefficient) - optimal_threshold_v
+        return amend_y_pred.dot(threshold_lsq_coefficient) - optimal_threshold_v
 
-    ans = leastsq(lsq_func, numpy.random.rand(nb_tags))
+    # ans = leastsq(lsq_func, numpy.random.rand(nb_tags + 1))
+    ans = lstsq(amend_y_pred, optimal_threshold_v)
     print (u'square loss: %lf' % numpy.sum(lsq_func(ans[0])**2))
     numpy.savetxt(THRESHOLD_LSQ_COEFFICIENT_PATH, ans[0])
     print (u'least square done..')
@@ -201,8 +204,8 @@ def read_threshold_lsq_coefficient():
 
 def derive_tag_indices_from_y(y, is_y_true=False, threshold=0.15):
     ans = set()
-    if THRESHOLD_LSQ_COEFFICIENT:
-        threshold = sum(numpy.sort(y) * THRESHOLD_LSQ_COEFFICIENT)
+    if THRESHOLD_LSQ_COEFFICIENT is not None:
+        threshold = sum(numpy.append(y, [1.0]) * THRESHOLD_LSQ_COEFFICIENT)
     threshold = 0.01 if is_y_true else threshold
     for idx in range(len(y)):
         if y[idx] >= threshold:
