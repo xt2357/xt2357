@@ -28,7 +28,7 @@ def hamming_evaluator(y_pred, y_true):
     """
     hamming loss
     """
-    return len(my_model.derive_tag_indices_from_y(y_true) ^ my_model.derive_tag_indices_from_y(y_pred))
+    return len(my_model.derive_tag_indices_from_y(y_true, is_y_true=True) ^ my_model.derive_tag_indices_from_y(y_pred))
 
 
 def accuracy_evaluator(y_pred, y_true):
