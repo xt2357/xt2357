@@ -8,9 +8,9 @@ import numpy
 import nlp_utils
 
 NYT_PATH = ur'D:\nyt\NYT'
-NYT_SINGLE_FILE_PATH = ur'../data/nyt/nyt_single.txt'
-STRUCTURED_NYT_PATH = ur'../data/nyt/structured_nyt.txt'
-STRUCTURED_NYT_STAT_PATH = ur'../data/nyt/statistic.txt'
+NYT_SINGLE_FILE_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/nyt_single.txt')
+STRUCTURED_NYT_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/structured_nyt.txt')
+STRUCTURED_NYT_STAT_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/statistic.txt')
 
 
 # noinspection PyBroadException
@@ -114,8 +114,8 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
                               news_cnt, para_aver, para_min, para_max))
 
 
-NYT_DICT_PATH = ur'../data/nyt/nyt_dict.txt'
-NYT_IGNORE_CASE_DICT_PATH = ur'../data/nyt/nyt_ignore_case_dict.txt'
+NYT_DICT_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/nyt_dict.txt')
+NYT_IGNORE_CASE_DICT_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/nyt_ignore_case_dict.txt')
 
 
 def get_nyt_dict(structured_nyt_path, output_dict_path, ignore_case=False):
@@ -140,7 +140,7 @@ def get_nyt_dict(structured_nyt_path, output_dict_path, ignore_case=False):
     DICTIONARY_LOADED = False
 
 
-NYT_TAG_DICT_PATH = ur'../data/nyt/tag_dict.txt'
+NYT_TAG_DICT_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/tag_dict.txt')
 
 
 def get_nyt_tag_dict(structured_nyt_stat_path, nyt_tag_dict_path):
@@ -166,8 +166,9 @@ def get_nyt_tag_dict(structured_nyt_stat_path, nyt_tag_dict_path):
     DICTIONARY_LOADED = False
 
 
-NYT_WORD_EMBEDDING_PATH = ur'../data/nyt/nyt_word_embedding.txt'
-NYT_IGNORE_CASE_WORD_EMBEDDING_PATH = ur'../data/nyt/nyt_ignore_case_word_embedding.txt'
+NYT_WORD_EMBEDDING_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/nyt_word_embedding.txt')
+NYT_IGNORE_CASE_WORD_EMBEDDING_PATH = \
+    os.path.join(os.path.dirname(__file__), ur'../data/nyt/nyt_ignore_case_word_embedding.txt')
 NYT_WORD_EMBEDDING_DIM = 300
 
 
@@ -275,8 +276,8 @@ def padding_document(sentences):
     return reduce(list.__add__, sentences)
 
 
-X_ALL_PATH = ur'../data/nyt/x_all.txt'
-Y_ALL_PATH = ur'../data/nyt/y_all.txt'
+X_ALL_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/x_all.txt')
+Y_ALL_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/y_all.txt')
 
 # the most 128th frequent tags are meaningful, others are ignored
 MEANINGFUL_TAG_SIZE = 128
@@ -305,10 +306,10 @@ def transform_structured_nyt_to_regular_data(structured_nyt_path, structured_nyt
             y_all.write(u' '.join([str(tag) for tag in tags]) + u'\n')
 
 
-X_TRAIN_PATH = ur'../data/nyt/x_train.txt'
-Y_TRAIN_PATH = ur'../data/nyt/y_train.txt'
-X_EVAL_PATH = ur'../data/nyt/x_eval.txt'
-Y_EVAL_PATH = ur'../data/nyt/y_eval.txt'
+X_TRAIN_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/x_train.txt')
+Y_TRAIN_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/y_train.txt')
+X_EVAL_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/x_eval.txt')
+Y_EVAL_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/y_eval.txt')
 
 
 def randomly_split_data(eval_data_size, x_all_path, y_all_path, x_train_path, y_train_path, x_eval_path, y_eval_path):

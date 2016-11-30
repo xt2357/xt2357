@@ -3,6 +3,7 @@ import lstm_with_tag_relation as my_model
 import preprocessing
 import numpy
 import sys
+import os
 
 
 def sample_based_validation(x_eval, y_eval, trained_model, threshold):
@@ -147,7 +148,7 @@ def print_relation(model_weights_path):
     print (model.get_layer(u'relation').get_weights())
 
 
-UNITNORM_MODEL = ur'../models/model_weights_unitnorm.h5'
+UNITNORM_MODEL_PATH = os.path.join(os.path.dirname(__file__), ur'../models/model_weights_unitnorm.h5')
 
 if __name__ == '__main__':
     evaluation(sys.argv[1],

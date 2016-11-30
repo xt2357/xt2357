@@ -79,8 +79,8 @@ def read_embedding_weights(nyt_word_embedding_path):
     return [embedding_weights]
 
 
-MODEL_WEIGHTS_PATH = u'../models/model_weights.h5'
-HISTORY_PATH = u'../models/train_history.txt'
+MODEL_WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), u'../models/model_weights.h5')
+HISTORY_PATH = os.path.join(os.path.dirname(__file__), u'../models/train_history.txt')
 
 
 def get_sample_weights_template():
@@ -183,7 +183,7 @@ def text_predict(trained_model, text, cutoff=10):
     return [(preprocessing.TAG_IDX_TO_NAME[idx], confidence) for idx, confidence in tags]
 
 
-THRESHOLD_LSQ_COEFFICIENT_PATH = u'../models/threshold_lsq_coefficient.txt'
+THRESHOLD_LSQ_COEFFICIENT_PATH = os.path.join(os.path.dirname(__file__), u'../models/threshold_lsq_coefficient.txt')
 THRESHOLD_LSQ_COEFFICIENT = None
 
 
