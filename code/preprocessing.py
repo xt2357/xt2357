@@ -358,9 +358,11 @@ def read_x(file_path, size=None):
     return ans
 
 
-def read_y(file_path):
+def read_y(file_path, size=None):
     cnt = 0
     for _ in open(file_path):
+        if size and cnt == size:
+            break
         cnt += 1
     ans = numpy.zeros((cnt, MEANINGFUL_TAG_SIZE))
     i = 0
@@ -372,6 +374,8 @@ def read_y(file_path):
             v[idx] = 1.0 / len(points)
         ans[i] = v
         i += 1
+        if i == cnt:
+            break
     return ans
 
 

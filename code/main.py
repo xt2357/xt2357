@@ -22,6 +22,6 @@ if __name__ == '__main__':
     elif sys.argv[1] == u'p_relation':
         print_relation(sys.argv[2])
     elif sys.argv[1] == u'lsq':
-        lsq(sys.argv[2])
+        lsq(sys.argv[2], sample_size=int(sys.argv[3]) if len(sys.argv) >= 4 else None)
     else:
         print_usage()

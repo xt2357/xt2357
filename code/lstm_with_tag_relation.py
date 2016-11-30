@@ -10,6 +10,7 @@ import codecs
 import preprocessing
 import nlp_utils
 import os
+import sys
 from keras.callbacks import EarlyStopping
 
 
@@ -114,10 +115,11 @@ def train():
     lsq(MODEL_WEIGHTS_PATH, x_train, y_train)
 
 
-def lsq(trained_model_path, x_train=None, y_train=None):
+def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None):
     if not x_train:
         x_train, y_train = \
-            preprocessing.read_x(preprocessing.X_TRAIN_PATH), preprocessing.read_y(preprocessing.Y_TRAIN_PATH)
+            preprocessing.read_x(preprocessing.X_TRAIN_PATH, sample_size), \
+            preprocessing.read_y(preprocessing.Y_TRAIN_PATH, sample_size)
         print (u'train data loaded')
     from scipy.optimize import leastsq
     model = new_model()
@@ -135,6 +137,7 @@ def lsq(trained_model_path, x_train=None, y_train=None):
         true_tags = derive_tag_indices_from_y(y_train[i], is_y_true=True)
         precision, recall, pos = 0.0, 0.0, -1
         correct_tags_predicted = 0.0
+        nb_misclassified = sys.maxint
         # searching optimal threshold
         for idx in range(nb_tags - 1, -1, -1):
             # for speeding up
@@ -145,9 +148,9 @@ def lsq(trained_model_path, x_train=None, y_train=None):
             correct_tags_predicted += 1
             this_precision, this_recall = \
                 correct_tags_predicted / (nb_tags - idx), correct_tags_predicted / len(true_tags)
-            if this_precision + this_recall - abs(this_precision - this_recall) \
-                    > precision + recall - abs(precision - recall):
+            if (nb_tags - idx - correct_tags_predicted) + (len(true_tags) - correct_tags_predicted) < nb_misclassified:
                 precision, recall, pos = this_precision, this_recall, idx
+                nb_misclassified = (nb_tags - idx - correct_tags_predicted) + (len(true_tags) - correct_tags_predicted)
         aver_precision, aver_recall = (aver_precision * i + precision) / (i + 1), (aver_recall * i + recall) / (i + 1)
         optimal_threshold_v[i] = \
             (sorted_y_pred[i][pos] + (sorted_y_pred[i][pos - 1] if pos != 0 else sorted_y_pred[i][pos])) / 2.0
@@ -158,7 +161,7 @@ def lsq(trained_model_path, x_train=None, y_train=None):
         return sorted_y_pred.dot(threshold_lsq_coefficient) - optimal_threshold_v
 
     ans = leastsq(lsq_func, numpy.random.rand(nb_tags))
-    print (ans[-2])
+    print (u'square loss: %lf' % numpy.sum(lsq_func(ans[0])**2))
     numpy.savetxt(THRESHOLD_LSQ_COEFFICIENT_PATH, ans[0])
     print (u'least square done..')
 
