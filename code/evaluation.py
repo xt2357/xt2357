@@ -45,8 +45,8 @@ def precision_evaluator(y_pred, y_true):
     """
     pred_set = my_model.derive_tag_indices_from_y(y_pred)
     true_set = my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
-    if len(pred_set) == 0:
-        print (u'predict set has no element, pred vec: %s' % y_pred)
+    # if len(pred_set) == 0:
+    #     print (u'predict set has no element')
     return len(pred_set & true_set) / float(len(pred_set)) if len(pred_set) != 0 else 0.0
 
 
@@ -106,6 +106,7 @@ def ranking_loss_evaluator(y_pred, y_true):
 
 
 def evaluation(model_weights_path, evaluators):
+    my_model.read_threshold_lsq_coefficient()
     model = my_model.new_model()
     model.load_weights(model_weights_path)
     x_eval, y_eval = \

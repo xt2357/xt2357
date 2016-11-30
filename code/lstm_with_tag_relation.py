@@ -9,6 +9,7 @@ import numpy
 import codecs
 import preprocessing
 import nlp_utils
+import os
 from keras.callbacks import EarlyStopping
 
 
@@ -55,7 +56,7 @@ def new_model():
                                   preprocessing.DICT_SIZE,
                                   read_embedding_weights(
                                       preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
-                                  preprocessing.NYT_WORD_EMBEDDING_DIM, 400, 800, preprocessing.MEANINGFUL_TAG_SIZE)
+                                  preprocessing.NYT_WORD_EMBEDDING_DIM, 450, 800, preprocessing.MEANINGFUL_TAG_SIZE)
 
 
 def read_embedding_weights(nyt_word_embedding_path):
@@ -110,6 +111,56 @@ def train():
     print (history.history)
     with codecs.open(HISTORY_PATH, 'w', 'utf8') as history_output:
         history_output.write(unicode(history.history))
+    lsq(MODEL_WEIGHTS_PATH, x_train, y_train)
+
+
+def lsq(trained_model_path, x_train=None, y_train=None):
+    if not x_train:
+        x_train, y_train = \
+            preprocessing.read_x(preprocessing.X_TRAIN_PATH), preprocessing.read_y(preprocessing.Y_TRAIN_PATH)
+        print (u'train data loaded')
+    from scipy.optimize import leastsq
+    model = new_model()
+    print (u'lsq loading model %s' % trained_model_path)
+    model.load_weights(trained_model_path)
+    print (u'model %s loaded, prediction start..' % trained_model_path)
+    y_pred = model.predict(x_train)
+    sorted_y_pred = numpy.sort(y_pred)
+    sorted_y_pred_args = numpy.argsort(y_pred)
+    print (u'prediction and sort done..generate optimal threshold vector..')
+    optimal_threshold_v = numpy.zeros(len(x_train))
+    nb_tags = len(y_train[0])
+    aver_precision, aver_recall = 0.0, 0.0
+    for i in range(len(x_train)):
+        true_tags = derive_tag_indices_from_y(y_train[i], is_y_true=True)
+        precision, recall, pos = 0.0, 0.0, -1
+        correct_tags_predicted = 0.0
+        # searching optimal threshold
+        for idx in range(nb_tags - 1, -1, -1):
+            # for speeding up
+            if nb_tags - idx > 10:
+                break
+            if sorted_y_pred_args[i][idx] not in true_tags:
+                continue
+            correct_tags_predicted += 1
+            this_precision, this_recall = \
+                correct_tags_predicted / (nb_tags - idx), correct_tags_predicted / len(true_tags)
+            if this_precision + this_recall - abs(this_precision - this_recall) \
+                    > precision + recall - abs(precision - recall):
+                precision, recall, pos = this_precision, this_recall, idx
+        aver_precision, aver_recall = (aver_precision * i + precision) / (i + 1), (aver_recall * i + recall) / (i + 1)
+        optimal_threshold_v[i] = \
+            (sorted_y_pred[i][pos] + (sorted_y_pred[i][pos - 1] if pos != 0 else sorted_y_pred[i][pos])) / 2.0
+    print (u'optimal threshold retrieve done, average precision: %lf, average recall: %lf..'
+           u'starting least square..' % (aver_precision, aver_recall))
+
+    def lsq_func(threshold_lsq_coefficient):
+        return sorted_y_pred.dot(threshold_lsq_coefficient) - optimal_threshold_v
+
+    ans = leastsq(lsq_func, numpy.random.rand(nb_tags))
+    print (ans[-2])
+    numpy.savetxt(THRESHOLD_LSQ_COEFFICIENT_PATH, ans[0])
+    print (u'least square done..')
 
 
 def text_predict(trained_model, text, cutoff=10):
@@ -129,9 +180,27 @@ def text_predict(trained_model, text, cutoff=10):
     return [(preprocessing.TAG_IDX_TO_NAME[idx], confidence) for idx, confidence in tags]
 
 
-def derive_tag_indices_from_y(y, is_y_true=False):
+THRESHOLD_LSQ_COEFFICIENT_PATH = u'../models/threshold_lsq_coefficient.txt'
+THRESHOLD_LSQ_COEFFICIENT = None
+
+
+# using adaptive threshold mechanism: threshold = sorted_nn_output_v dot threshold_lsq_coefficient
+def read_threshold_lsq_coefficient():
+    global THRESHOLD_LSQ_COEFFICIENT
+    if THRESHOLD_LSQ_COEFFICIENT:
+        return
+    if os.path.exists(THRESHOLD_LSQ_COEFFICIENT_PATH):
+        THRESHOLD_LSQ_COEFFICIENT = numpy.loadtxt(THRESHOLD_LSQ_COEFFICIENT_PATH)
+        print (u'threshold lsq coefficient loaded')
+    else:
+        print (u'threshold lsq coefficient not exist in %s' % THRESHOLD_LSQ_COEFFICIENT_PATH)
+
+
+def derive_tag_indices_from_y(y, is_y_true=False, threshold=0.15):
     ans = set()
-    threshold = 0.01 if is_y_true else 0.1
+    if THRESHOLD_LSQ_COEFFICIENT:
+        threshold = sum(numpy.sort(y) * THRESHOLD_LSQ_COEFFICIENT)
+    threshold = 0.01 if is_y_true else threshold
     for idx in range(len(y)):
         if y[idx] >= threshold:
             ans.add(idx)
