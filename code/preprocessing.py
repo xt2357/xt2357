@@ -5,7 +5,6 @@ import sys
 import itertools
 import codecs
 import numpy
-from keras.utils import np_utils
 import nlp_utils
 
 NYT_PATH = ur'D:\nyt\NYT'

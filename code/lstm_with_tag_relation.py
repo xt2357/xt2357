@@ -190,7 +190,7 @@ def read_threshold_lsq_coefficient():
     if THRESHOLD_LSQ_COEFFICIENT:
         return
     if os.path.exists(THRESHOLD_LSQ_COEFFICIENT_PATH):
-        THRESHOLD_LSQ_COEFFICIENT = numpy.loadtxt(THRESHOLD_LSQ_COEFFICIENT_PATH)
+        THRESHOLD_LSQ_COEFFICIENT = numpy.loadtxt(open(THRESHOLD_LSQ_COEFFICIENT_PATH))
         print (u'threshold lsq coefficient loaded')
     else:
         print (u'threshold lsq coefficient not exist in %s' % THRESHOLD_LSQ_COEFFICIENT_PATH)

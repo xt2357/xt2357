@@ -1,5 +1,4 @@
 # coding=utf8
-import sys
 from lstm_with_tag_relation import *
 from evaluation import *
 
