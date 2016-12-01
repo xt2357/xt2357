@@ -58,31 +58,21 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
 
 def gru_with_attention(nb_sentence, nb_words, dict_size, word_embedding_weights,
                        word_embedding_dim, sentence_embedding_dim, document_embedding_dim, nb_tags):
-    word_lstm = Sequential()
-    word_lstm.add(GRU(output_dim=sentence_embedding_dim, return_sequences=True,
-                      input_shape=(preprocessing.MAX_WORDS_IN_SENTENCE, word_embedding_dim),
-                      activation=u'tanh', inner_activation=u'hard_sigmoid'))
-    model_for_get_last = Sequential()
-    model_for_get_last.add(word_lstm)
+    word_lstm_input = Input(shape=(preprocessing.MAX_WORDS_IN_SENTENCE, word_embedding_dim))
+    word_lstm_output = GRU(output_dim=sentence_embedding_dim, return_sequences=True,
+                           input_shape=(preprocessing.MAX_WORDS_IN_SENTENCE, word_embedding_dim),
+                           activation=u'tanh', inner_activation=u'hard_sigmoid')(word_lstm_input)
 
     def get_last(word_lstm_output_seq):
         return word_lstm_output_seq[-1]
 
-    model_for_get_last.add(Lambda(get_last, output_shape=(sentence_embedding_dim,)))
-    model_for_get_last.add(Dense(output_dim=preprocessing.MAX_WORDS_IN_SENTENCE, activation=u'softmax'))
-
-    model_for_average = Sequential()
-    model_for_average.add(word_lstm)
-
-    model_for_final_sentence_embedding_input = Input(shape=(preprocessing.MAX_WORDS_IN_SENTENCE, word_embedding_dim))
-    last = model_for_get_last(model_for_final_sentence_embedding_input)
-    for_aver = model_for_average(model_for_final_sentence_embedding_input)
-    final_output = merge([last, for_aver], mode=u'dot', dot_axes=1)
-    model_for_final_sentence_embedding = Model(input=[model_for_final_sentence_embedding_input], output=[final_output])
-    word_lstm_model = model_for_final_sentence_embedding
+    for_get_last = Lambda(get_last, output_shape=(sentence_embedding_dim,))(word_lstm_output)
+    sentence_context = \
+        Dense(output_dim=preprocessing.MAX_WORDS_IN_SENTENCE, activation=u'softmax')(for_get_last)
+    final_output = merge([sentence_context, word_lstm_output], mode=u'dot', dot_axes=1)
+    word_lstm_model = Model(input=[word_lstm_input], output=[final_output])
 
     sentence_lstm_model = Sequential()
-    # sentence_lstm_model.add(Masking(input_shape=(nb_sentence, sentence_embedding_dim)))
     sentence_lstm = GRU(output_dim=document_embedding_dim,
                         input_shape=(preprocessing.MAX_SENTENCES_IN_DOCUMENT, sentence_embedding_dim),
                         activation=u'tanh', inner_activation=u'hard_sigmoid')
