@@ -12,7 +12,7 @@ import preprocessing
 import nlp_utils
 import os
 import sys
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 
 def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weights,
@@ -64,7 +64,7 @@ def gru_with_attention(nb_sentence, nb_words, dict_size, word_embedding_weights,
                            activation=u'tanh', inner_activation=u'hard_sigmoid')(word_lstm_input)
 
     def get_last(word_lstm_output_seq):
-        return word_lstm_output_seq[-1]
+        return K.permute_dimensions(word_lstm_output_seq, (1, 0, 2))[-1]
 
     for_get_last = Lambda(get_last, output_shape=(sentence_embedding_dim,))(word_lstm_output)
     sentence_context = \
@@ -108,9 +108,11 @@ def gru_with_attention(nb_sentence, nb_words, dict_size, word_embedding_weights,
 
 def new_model(with_attention=False):
     if with_attention:
-        return gru_with_attention(preprocessing.MAX_SENTENCES_IN_DOCUMENT, preprocessing.MAX_WORDS_IN_SENTENCE,
+        return gru_with_attention(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
+                                  preprocessing.MAX_WORDS_IN_SENTENCE,
                                   preprocessing.DICT_SIZE,
-                                  read_embedding_weights(preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
+                                  read_embedding_weights(
+                                      preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
                                   preprocessing.NYT_WORD_EMBEDDING_DIM, 450, 800, preprocessing.MEANINGFUL_TAG_SIZE)
     else:
         return masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
@@ -153,8 +155,11 @@ def get_sample_weights_template():
     return v
 
 
+MODEL_PATH = os.path.join(os.path.dirname(__file__), ur"../models/model-{epoch:02d}-{val_acc:.2f}.hdf5")
+
+
 def train():
-    model = new_model()
+    model = new_model(with_attention=True)
     x_train, y_train = \
         preprocessing.read_x(preprocessing.X_TRAIN_IGNORE_STOP_PATH), \
         preprocessing.read_y(preprocessing.Y_TRAIN_IGNORE_STOP_PATH)
@@ -168,7 +173,8 @@ def train():
         preprocessing.read_y(preprocessing.Y_EVAL_IGNORE_STOP_PATH)
     print (u'eval data loaded')
     early_stopping = EarlyStopping(monitor='val_loss', patience=2)
-    history = model.fit(x_train, y_train, callbacks=[early_stopping], validation_data=(x_eval, y_eval),
+    check_point = ModelCheckpoint(MODEL_PATH)
+    history = model.fit(x_train, y_train, callbacks=[early_stopping, check_point], validation_data=(x_eval, y_eval),
                         nb_epoch=4, batch_size=64, sample_weight=None)
     model.save_weights(MODEL_WEIGHTS_PATH)
     print (u'model saved to %s' % MODEL_WEIGHTS_PATH)
@@ -286,4 +292,5 @@ def main():
 if __name__ == '__main__':
     # main()
     gru = new_model(with_attention=True)
+    print (gru.predict(numpy.zeros(shape=(5, 24 * 64))))
     pass
