@@ -7,6 +7,14 @@ import jieba
 
 
 nltk_sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle').tokenize
+stopwords = {'a','able','about','across','after','all','almost','also','am','among','an','and','any','are','as',
+             'at','be','because','been','but','by','can','cannot','could','dear','did','do','does','either','else',
+             'ever','every','for','from','get','got','had','has','have','he','her','hers','him','his','how','however',
+             'i','if','in','into','is','it','its','just','least','let','like','likely','may','me','might','most','must',
+             'my','neither','no','nor','not','of','off','often','on','only','or','other','our','own','rather','said',
+             'say','says','she','should','since','so','some','than','that','the','their','them','then','there','these',
+             'they','this','tis','to','too','twas','us','wants','was','we','were','what','when','where','which','while',
+             'who','whom','why','will','with','would','yet','you','your'}
 
 
 def split_into_sentences_by_nltk(text):
@@ -21,21 +29,21 @@ def split_into_sentences_by_nltk(text):
 # word_tokenizer = TreebankWordTokenizer().tokenize
 
 
-def tokenize(text):
-    return [tok for tok in jieba.cut(text) if tok.isalnum()]
+def tokenize(text, ignore_stopwords=False):
+    return [tok for tok in jieba.cut(text) if tok.isalnum() and (not ignore_stopwords or tok.lower() not in stopwords)]
 
 
 sentence_pattern = re.compile(ur'.*[0-9A-Za-z]+.*', re.UNICODE)
 
 
-def split_into_paragraph_sentence_token(text):
+def split_into_paragraph_sentence_token(text, ignore_stopwords=False):
     """
     split the whole text into [[[[word], [word], ..], [sentence], ..], [paragraph], ..]
     treat every non-empty line as a paragraph
     :rtype: [[[[word], [word], ..], [sentence], ..], [paragraph], ..]
     """
     result = \
-        [[tokenize(sentence) for sentence in split_into_sentences_by_nltk(paragraph)
+        [[tokenize(sentence, ignore_stopwords=ignore_stopwords) for sentence in split_into_sentences_by_nltk(paragraph)
           if sentence_pattern.match(sentence)]
          for paragraph in text.splitlines() if paragraph.strip() != u'']
     result = [[sent for sent in para if len(sent) > 0] for para in result]

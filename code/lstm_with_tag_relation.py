@@ -1,5 +1,5 @@
 # coding=utf8
-from keras.layers import Input, Embedding, LSTM, Dense, TimeDistributed, Activation, Reshape, Masking
+from keras.layers import Input, Embedding, LSTM, Dense, TimeDistributed, Activation, Reshape, Masking, GRU
 from keras.models import Model
 from keras.regularizers import l2
 from keras.models import Sequential
@@ -164,7 +164,7 @@ def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None):
 
     # ans = leastsq(lsq_func, numpy.random.rand(nb_tags + 1))
     ans = lstsq(amend_y_pred, optimal_threshold_v)
-    print (u'square loss: %lf' % numpy.sum(lsq_func(ans[0])**2))
+    print (u'square loss: %lf' % numpy.sum(lsq_func(ans[0]) ** 2))
     numpy.savetxt(THRESHOLD_LSQ_COEFFICIENT_PATH, ans[0])
     print (u'least square done..')
 
@@ -172,6 +172,7 @@ def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None):
 def text_predict(trained_model, text, cutoff=10):
     # replace all the \n to make the whole text a single paragraph
     structure = nlp_utils.split_into_paragraph_sentence_token(text.replace(u'\n', u''))
+    assert len(structure) != 0 % u'text empty!(ignore stopwords)'
     sentences = structure[0]
     input_v = preprocessing.padding_document(sentences)
     output_v = trained_model.predict([input_v])[0]

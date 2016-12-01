@@ -11,6 +11,8 @@ NYT_PATH = ur'D:\nyt\NYT'
 NYT_SINGLE_FILE_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/nyt_single.txt')
 STRUCTURED_NYT_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/structured_nyt.txt')
 STRUCTURED_NYT_STAT_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/statistic.txt')
+STRUCTURED_NYT_IGNORE_STOP_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/structured_nyt_ignore_stop.txt')
+STRUCTURED_NYT_STAT_IGNORE_STOP_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/statistic_ignore_stop.txt')
 
 
 # noinspection PyBroadException
@@ -58,7 +60,8 @@ def extract_tags_from_url(url):
     return tags
 
 
-def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, statistics_output_path):
+def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, statistics_output_path,
+                                        ignore_stopwords=False):
     from codecs import open
     done_count = 0
     sen_cnt, word_aver, word_min, word_max = 0, 0.0, sys.maxint, 0
@@ -80,7 +83,8 @@ def structure_nyt_news_from_single_file(nyt_single_file_path, output_path, stati
             elif line.strip() == u'':
                 assert title.strip() != u'' and url.strip() != u'' and text.strip() != u'', \
                     u'title: %s, url: %s, text: %s' % (title, url, text)
-                news_structure = nlp_utils.split_into_paragraph_sentence_token(title.strip() + u'\n' + text)
+                news_structure = nlp_utils.split_into_paragraph_sentence_token(title.strip() + u'\n' + text,
+                                                                               ignore_stopwords=ignore_stopwords)
                 out_file.write(u' '.join(tags) + u'\n')
                 statistic_file.write(title + url)
                 statistic_file.write(
@@ -188,8 +192,8 @@ def get_nyt_word_embeddings(nyt_dict_path, output_embedding_path):
                 output.write(u' '.join([str(component) for component in model[word]]) + u'\n')
 
 
-# (21946236, 21341986) words in sentences: (sentence cnt, less than 48 cnt)
-# (600929, 478460) sentences in documents (document cnt, less than 48 cnt)
+# (21946236, 21341986) words in sentences: (sentence cnt, less than 48 cnt, no ignoring stopwords)
+# (600929, 478460) sentences in documents (document cnt, less than 48 cnt, no ignoring stopwords)
 MAX_WORDS_IN_SENTENCE = 48
 MAX_SENTENCES_IN_DOCUMENT = 48
 
@@ -278,6 +282,8 @@ def padding_document(sentences):
 
 X_ALL_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/x_all.txt')
 Y_ALL_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/y_all.txt')
+X_ALL_IGNORE_STOP_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/x_all_ignore_stop.txt')
+Y_ALL_IGNORE_STOP_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/y_all_ignore_stop.txt')
 
 # the most 128th frequent tags are meaningful, others are ignored
 MEANINGFUL_TAG_SIZE = 128
@@ -310,6 +316,10 @@ X_TRAIN_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/x_train.tx
 Y_TRAIN_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/y_train.txt')
 X_EVAL_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/x_eval.txt')
 Y_EVAL_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/y_eval.txt')
+X_TRAIN_IGNORE_STOP_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/x_train_ignore_stop.txt')
+Y_TRAIN_IGNORE_STOP_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/y_train_ignore_stop.txt')
+X_EVAL_IGNORE_STOP_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/x_eval_ignore_stop.txt')
+Y_EVAL_IGNORE_STOP_PATH = os.path.join(os.path.dirname(__file__), ur'../data/nyt/y_eval_ignore_stop.txt')
 
 
 def randomly_split_data(eval_data_size, x_all_path, y_all_path, x_train_path, y_train_path, x_eval_path, y_eval_path):
@@ -391,6 +401,17 @@ def calc_average_tag_per_doc(structured_nyt_stat_path):
     print (u'average tag per document: %lf' % (tag_sum / cnt))
 
 
+def process_ignoring_stopwords():
+    structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
+                                        STRUCTURED_NYT_IGNORE_STOP_PATH,
+                                        STRUCTURED_NYT_STAT_IGNORE_STOP_PATH, ignore_stopwords=True)
+    transform_structured_nyt_to_regular_data(STRUCTURED_NYT_IGNORE_STOP_PATH, STRUCTURED_NYT_STAT_IGNORE_STOP_PATH,
+                                             X_ALL_IGNORE_STOP_PATH, Y_ALL_IGNORE_STOP_PATH)
+    randomly_split_data(50000, X_ALL_IGNORE_STOP_PATH, Y_ALL_IGNORE_STOP_PATH,
+                        X_TRAIN_IGNORE_STOP_PATH, Y_TRAIN_IGNORE_STOP_PATH,
+                        X_EVAL_IGNORE_STOP_PATH, Y_EVAL_IGNORE_STOP_PATH)
+
+
 if __name__ == '__main__':
     # merge_nyt_to_single_file(NYT_PATH, NYT_SINGLE_FILE_PATH)
     # structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
@@ -409,5 +430,6 @@ if __name__ == '__main__':
 
     # transform_structured_nyt_to_regular_data(STRUCTURED_NYT_PATH, STRUCTURED_NYT_STAT_PATH, X_ALL_PATH, Y_ALL_PATH)
     # randomly_split_data(50000, X_ALL_PATH, Y_ALL_PATH, X_TRAIN_PATH, Y_TRAIN_PATH, X_EVAL_PATH, Y_EVAL_PATH)
-    calc_average_tag_per_doc(STRUCTURED_NYT_STAT_PATH)
+    # calc_average_tag_per_doc(STRUCTURED_NYT_STAT_PATH) 1.5
+    process_ignoring_stopwords()
     pass
