@@ -194,22 +194,24 @@ def get_nyt_word_embeddings(nyt_dict_path, output_embedding_path):
 
 # (21946236, 21341986) words in sentences: (sentence cnt, less than 48 cnt, no ignoring stopwords)
 # (600929, 478460) sentences in documents (document cnt, less than 48 cnt, no ignoring stopwords)
-MAX_WORDS_IN_SENTENCE = 48
-MAX_SENTENCES_IN_DOCUMENT = 48
+# (21892580, 20373753) words in sentences: (sentence cnt, less than 24 cnt, ignoring stopwords)
+# (600929, 555465) sentences in documents (document cnt, less than 64 cnt, ignoring stopwords)
+MAX_WORDS_IN_SENTENCE = 24
+MAX_SENTENCES_IN_DOCUMENT = 64
 
 
-def calc_words_less_than_max_percentage():
+def calc_words_less_than_max_percentage(structured_nyt_path):
     line_cnt, my_cnt = 0, 0
-    for line in file(STRUCTURED_NYT_PATH):
+    for line in file(structured_nyt_path):
         if len(line.split()) <= MAX_WORDS_IN_SENTENCE:
             my_cnt += 1
         line_cnt += 1
     print (line_cnt, my_cnt)
 
 
-def calc_sentences_less_than_max_percentage():
+def calc_sentences_less_than_max_percentage(structured_nyt_stat_path):
     doc_cnt, ok_cnt = 0, 0
-    for stat in itertools.islice(file(STRUCTURED_NYT_STAT_PATH), 2, None, 3):
+    for stat in itertools.islice(file(structured_nyt_stat_path), 2, None, 3):
         if not stat[0].isdigit():
             break
         doc_cnt += 1
@@ -402,9 +404,11 @@ def calc_average_tag_per_doc(structured_nyt_stat_path):
 
 
 def process_ignoring_stopwords():
-    structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
-                                        STRUCTURED_NYT_IGNORE_STOP_PATH,
-                                        STRUCTURED_NYT_STAT_IGNORE_STOP_PATH, ignore_stopwords=True)
+    # structure_nyt_news_from_single_file(NYT_SINGLE_FILE_PATH,
+    #                                     STRUCTURED_NYT_IGNORE_STOP_PATH,
+    #                                     STRUCTURED_NYT_STAT_IGNORE_STOP_PATH, ignore_stopwords=True)
+    # calc_sentences_less_than_max_percentage(STRUCTURED_NYT_STAT_IGNORE_STOP_PATH)
+    # calc_words_less_than_max_percentage(STRUCTURED_NYT_IGNORE_STOP_PATH)
     transform_structured_nyt_to_regular_data(STRUCTURED_NYT_IGNORE_STOP_PATH, STRUCTURED_NYT_STAT_IGNORE_STOP_PATH,
                                              X_ALL_IGNORE_STOP_PATH, Y_ALL_IGNORE_STOP_PATH)
     randomly_split_data(50000, X_ALL_IGNORE_STOP_PATH, Y_ALL_IGNORE_STOP_PATH,
