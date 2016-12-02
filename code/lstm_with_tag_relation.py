@@ -28,7 +28,7 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
                         activation=u'tanh', inner_activation=u'hard_sigmoid')
     sentence_lstm_model.add(sentence_lstm)
     relation_layer = Dense(output_dim=nb_tags, input_shape=(nb_tags,),
-                           name=u'relation', bias=False, W_regularizer=l2(0.01), W_constraint=unitnorm())
+                           name=u'relation', bias=False, W_regularizer=l2(0.01), W_constraint=unitnorm(axis=0))
     total_words = nb_words * nb_sentence
     input_layer = Input(shape=(total_words,))
     embedding_layer = \
@@ -68,8 +68,9 @@ def gru_with_attention(nb_sentence, nb_words, dict_size, word_embedding_weights,
 
     for_get_last = Lambda(get_last, output_shape=(sentence_embedding_dim,))(word_lstm_output)
     sentence_context = \
-        Dense(output_dim=preprocessing.MAX_WORDS_IN_SENTENCE, activation=u'softmax')(for_get_last)
-    final_output = merge([sentence_context, word_lstm_output], mode=u'dot', dot_axes=1)
+        Dense(output_dim=preprocessing.MAX_WORDS_IN_SENTENCE, activation=u'tanh')(for_get_last)
+    weights = Dense(output_dim=preprocessing.MAX_WORDS_IN_SENTENCE, activation=u'softmax')(sentence_context)
+    final_output = merge([weights, word_lstm_output], mode=u'dot', dot_axes=1)
     word_lstm_model = Model(input=[word_lstm_input], output=[final_output])
 
     sentence_lstm_model = Sequential()
@@ -78,7 +79,7 @@ def gru_with_attention(nb_sentence, nb_words, dict_size, word_embedding_weights,
                         activation=u'tanh', inner_activation=u'hard_sigmoid')
     sentence_lstm_model.add(sentence_lstm)
     relation_layer = Dense(output_dim=nb_tags, input_shape=(nb_tags,),
-                           name=u'relation', bias=False, W_regularizer=l2(0.01), W_constraint=unitnorm())
+                           name=u'relation', bias=False, W_regularizer=l2(0.01), W_constraint=unitnorm(axis=0))
     total_words = nb_words * nb_sentence
     input_layer = Input(shape=(total_words,))
     embedding_layer = \
@@ -155,7 +156,7 @@ def get_sample_weights_template():
     return v
 
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), ur"../models/model-{epoch:02d}-{val_acc:.2f}.hdf5")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), u"../models/model-{epoch:02d}.hdf5")
 
 
 def train():

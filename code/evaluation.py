@@ -108,8 +108,12 @@ def ranking_loss_evaluator(y_pred, y_true):
 
 def evaluation(model_weights_path, evaluators):
     my_model.read_threshold_lsq_coefficient()
-    model = my_model.new_model()
-    model.load_weights(model_weights_path)
+    if model_weights_path.endswith(u'hdf5'):
+        import keras
+        model = keras.models.load_model(model_weights_path)
+    else:
+        model = my_model.new_model()
+        model.load_weights(model_weights_path)
     x_eval, y_eval = \
         preprocessing.read_x(preprocessing.X_EVAL_PATH), preprocessing.read_y(preprocessing.Y_EVAL_PATH)
     print (u'eval data loaded')
