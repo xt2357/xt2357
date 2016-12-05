@@ -1,11 +1,13 @@
 <component name="ProjectDictionaryState">
   <dictionary name="xt">
     <words>
+      <w>codings</w>
       <w>coefs</w>
       <w>gensim</w>
       <w>lstm</w>
       <w>nltk</w>
       <w>pred</w>
+      <w>preprocessing</w>
       <w>readlines</w>
       <w>rmsprop</w>
       <w>softmax</w>

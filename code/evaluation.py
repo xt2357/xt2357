@@ -115,7 +115,32 @@ def evaluation(model_weights_path, evaluators):
         model = my_model.new_model()
         model.load_weights(model_weights_path)
     x_eval, y_eval = \
-        preprocessing.read_x(preprocessing.X_EVAL_PATH), preprocessing.read_y(preprocessing.Y_EVAL_PATH)
+        preprocessing.read_x(preprocessing.X_EVAL_IGNORE_STOP_PATH), \
+        preprocessing.read_y(preprocessing.Y_EVAL_IGNORE_STOP_PATH)
+    print (u'eval data loaded')
+    y_pred = model.predict(x_eval)
+    print (u'all prediction done')
+    for evaluator in evaluators:
+        total_score = 0.0
+        for idx in range(len(y_pred)):
+            total_score += evaluator(y_pred[idx], y_eval[idx])
+        total_score /= len(y_pred)
+        print (evaluator.__doc__)
+        print (total_score)
+
+
+def evaluation_on_refined_data(model_weights_path, evaluators):
+    import refined_preprocessing
+    my_model.read_threshold_lsq_coefficient()
+    if model_weights_path.endswith(u'hdf5'):
+        import keras
+        model = keras.models.load_model(model_weights_path)
+    else:
+        model = my_model.new_model()
+        model.load_weights(model_weights_path)
+    x_eval, y_eval = \
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL), \
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL, return_idx=True)
     print (u'eval data loaded')
     y_pred = model.predict(x_eval)
     print (u'all prediction done')
@@ -131,7 +156,7 @@ def evaluation(model_weights_path, evaluators):
 def batch_evaluation(model_weights_path, batch_size):
     model = my_model.new_model()
     model.load_weights(model_weights_path)
-    x_eval = preprocessing.read_x(preprocessing.X_EVAL_PATH, size=batch_size)
+    x_eval = preprocessing.read_x(preprocessing.X_EVAL_IGNORE_STOP_PATH, size=batch_size)
     y = model.predict(x_eval)
     with open('../data/nyt/batch_y.txt', 'w') as f:
         for output_v in y:

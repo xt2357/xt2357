@@ -6,6 +6,7 @@ from keras.regularizers import l2
 from keras.models import Sequential
 from keras.constraints import unitnorm, maxnorm
 from keras import backend as K
+import keras
 import numpy
 import codecs
 import preprocessing
@@ -19,12 +20,12 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
                            word_embedding_dim, sentence_embedding_dim, document_embedding_dim, nb_tags):
     word_lstm_model = Sequential()
     word_lstm_model.add(Masking(input_shape=(nb_words, word_embedding_dim)))
-    word_lstm = GRU(output_dim=sentence_embedding_dim, input_shape=(None, word_embedding_dim),
+    word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(None, word_embedding_dim),
                     activation=u'tanh', inner_activation=u'hard_sigmoid')
     word_lstm_model.add(word_lstm)
     sentence_lstm_model = Sequential()
     sentence_lstm_model.add(Masking(input_shape=(nb_sentence, sentence_embedding_dim)))
-    sentence_lstm = GRU(output_dim=document_embedding_dim, input_shape=(None, sentence_embedding_dim),
+    sentence_lstm = LSTM(output_dim=document_embedding_dim, input_shape=(None, sentence_embedding_dim),
                         activation=u'tanh', inner_activation=u'hard_sigmoid')
     sentence_lstm_model.add(sentence_lstm)
     relation_layer = Dense(output_dim=nb_tags, input_shape=(nb_tags,),
@@ -107,21 +108,13 @@ def gru_with_attention(nb_sentence, nb_words, dict_size, word_embedding_weights,
     return model
 
 
-def new_model(with_attention=False):
-    if with_attention:
-        return gru_with_attention(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
+def new_model(tag_count=preprocessing.MEANINGFUL_TAG_SIZE):
+    return masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
                                   preprocessing.MAX_WORDS_IN_SENTENCE,
                                   preprocessing.DICT_SIZE,
                                   read_embedding_weights(
                                       preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
-                                  preprocessing.NYT_WORD_EMBEDDING_DIM, 450, 800, preprocessing.MEANINGFUL_TAG_SIZE)
-    else:
-        return masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
-                                      preprocessing.MAX_WORDS_IN_SENTENCE,
-                                      preprocessing.DICT_SIZE,
-                                      read_embedding_weights(
-                                          preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
-                                      preprocessing.NYT_WORD_EMBEDDING_DIM, 450, 800, preprocessing.MEANINGFUL_TAG_SIZE)
+                                  preprocessing.NYT_WORD_EMBEDDING_DIM, 450, 800, tag_count)
 
 
 def read_embedding_weights(nyt_word_embedding_path):
@@ -156,11 +149,34 @@ def get_sample_weights_template():
     return v
 
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), u"../models/model-{epoch:02d}.hdf5")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), u"../models/model-{epoch:02d}.h5")
+
+
+def train_on_refined_data():
+    import refined_preprocessing
+    model = new_model(refined_preprocessing.TagManager.REFINED_TAG_DICT_SIZE)
+    x_train, y_train = \
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN),\
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN, return_idx=True)
+    print (u'train data loaded')
+    x_eval, y_eval = \
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL), \
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL, return_idx=True)
+    print (u'eval data loaded')
+    early_stopping = EarlyStopping(monitor='val_loss', patience=2)
+    check_point = ModelCheckpoint(MODEL_PATH, save_weights_only=True)
+    history = model.fit(x_train, y_train, callbacks=[early_stopping, check_point], validation_data=(x_eval, y_eval),
+                        nb_epoch=4, batch_size=64, sample_weight=None)
+    model.save_weights(MODEL_WEIGHTS_PATH)
+    print (u'model saved to %s' % MODEL_WEIGHTS_PATH)
+    print (history.history)
+    with codecs.open(HISTORY_PATH, 'w', 'utf8') as history_output:
+        history_output.write(unicode(history.history))
+    lsq(MODEL_WEIGHTS_PATH, x_train, y_train, on_refined_data=True)
 
 
 def train():
-    model = new_model(with_attention=True)
+    model = new_model()
     x_train, y_train = \
         preprocessing.read_x(preprocessing.X_TRAIN_IGNORE_STOP_PATH), \
         preprocessing.read_y(preprocessing.Y_TRAIN_IGNORE_STOP_PATH)
@@ -174,7 +190,7 @@ def train():
         preprocessing.read_y(preprocessing.Y_EVAL_IGNORE_STOP_PATH)
     print (u'eval data loaded')
     early_stopping = EarlyStopping(monitor='val_loss', patience=2)
-    check_point = ModelCheckpoint(MODEL_PATH)
+    check_point = ModelCheckpoint(MODEL_PATH, save_weights_only=True)
     history = model.fit(x_train, y_train, callbacks=[early_stopping, check_point], validation_data=(x_eval, y_eval),
                         nb_epoch=4, batch_size=64, sample_weight=None)
     model.save_weights(MODEL_WEIGHTS_PATH)
@@ -185,17 +201,26 @@ def train():
     lsq(MODEL_WEIGHTS_PATH, x_train, y_train)
 
 
-def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None):
-    if not x_train:
-        x_train, y_train = \
-            preprocessing.read_x(preprocessing.X_TRAIN_IGNORE_STOP_PATH, sample_size), \
-            preprocessing.read_y(preprocessing.Y_TRAIN_IGNORE_STOP_PATH, sample_size)
+def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None, on_refined_data=False):
+    if x_train is None:
+        if on_refined_data:
+            import refined_preprocessing
+            x_train, y_train = \
+                refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN), \
+                refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN, return_idx=True)
+        else:
+            x_train, y_train = \
+                preprocessing.read_x(preprocessing.X_TRAIN_IGNORE_STOP_PATH, sample_size), \
+                preprocessing.read_y(preprocessing.Y_TRAIN_IGNORE_STOP_PATH, sample_size)
         print (u'train data loaded')
     from scipy.optimize import leastsq
     from numpy.linalg import lstsq
     model = new_model()
     print (u'lsq loading model %s' % trained_model_path)
-    model.load_weights(trained_model_path)
+    if trained_model_path.endswith(u'hdf5'):
+        model = keras.models.load_model(trained_model_path)
+    else:
+        model.load_weights(trained_model_path)
     print (u'model %s loaded, prediction start..' % trained_model_path)
     y_pred = model.predict(x_train)
     sorted_y_pred = numpy.sort(y_pred)
@@ -292,6 +317,6 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    gru = new_model(with_attention=True)
+    gru = new_model()
     print (gru.predict(numpy.zeros(shape=(5, 24 * 64))))
     pass
