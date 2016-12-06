@@ -11,6 +11,7 @@
       <w>readlines</w>
       <w>rmsprop</w>
       <w>softmax</w>
+      <w>splitted</w>
       <w>unitnorm</w>
     </words>
   </dictionary>

@@ -206,8 +206,8 @@ def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None, on_ref
         if on_refined_data:
             import refined_preprocessing
             x_train, y_train = \
-                refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN), \
-                refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN, return_idx=True)
+                refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN, sample_size), \
+                refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN, sample_size, return_idx=True)
         else:
             x_train, y_train = \
                 preprocessing.read_x(preprocessing.X_TRAIN_IGNORE_STOP_PATH, sample_size), \
@@ -257,11 +257,28 @@ def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None, on_ref
     def lsq_func(threshold_lsq_coefficient):
         return amend_y_pred.dot(threshold_lsq_coefficient) - optimal_threshold_v
 
-    # ans = leastsq(lsq_func, numpy.random.rand(nb_tags + 1))
+    #### ans = leastsq(lsq_func, numpy.random.rand(nb_tags + 1))
     ans = lstsq(amend_y_pred, optimal_threshold_v)
     print (u'square loss: %lf' % numpy.sum(lsq_func(ans[0]) ** 2))
     numpy.savetxt(THRESHOLD_LSQ_COEFFICIENT_PATH, ans[0])
     print (u'least square done..')
+    # lr = get_lr_model(len(y_pred[0]))
+    # early_stopping = EarlyStopping(monitor='val_loss', patience=2)
+    # import refined_preprocessing
+    # datum = refined_preprocessing.randomly_split_data_in_memory(0.1, y_pred, optimal_threshold_v)
+    # lr.fit(datum[u'x_train'], datum[u'y_train'], validation_data=(datum[u'x_eval'], datum[u'y_eval']),
+    #        batch_size=128, nb_epoch=6, callbacks=[early_stopping])
+    # lr.save_weights(LR_MODEL_WEIGHTS_PATH)
+    # print (u'lr model weights saved to %s' % LR_MODEL_WEIGHTS_PATH)
+
+
+def get_lr_model(input_dim):
+    lr = Sequential()
+    lr.add(Dense(output_dim=1, input_shape=(input_dim,), activation='sigmoid', W_regularizer=l2(0.01), b_regularizer=l2(0.01)))
+    lr.compile(optimizer='sgd', loss='mean_squared_error')
+    return lr
+
+LR_MODEL_WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), u"../models/lr_weights.h5")
 
 
 def text_predict(trained_model, text, cutoff=10):
@@ -284,11 +301,15 @@ def text_predict(trained_model, text, cutoff=10):
 
 THRESHOLD_LSQ_COEFFICIENT_PATH = os.path.join(os.path.dirname(__file__), u'../models/threshold_lsq_coefficient.txt')
 THRESHOLD_LSQ_COEFFICIENT = None
+LR_MODEL = None
 
 
 # using adaptive threshold mechanism: threshold = sorted_nn_output_v dot threshold_lsq_coefficient
 def read_threshold_lsq_coefficient():
-    global THRESHOLD_LSQ_COEFFICIENT
+    global THRESHOLD_LSQ_COEFFICIENT, LR_MODEL
+    # LR_MODEL = get_lr_model(88)
+    # LR_MODEL.load_weights(LR_MODEL_WEIGHTS_PATH)
+    # print (u'lr model read')
     if THRESHOLD_LSQ_COEFFICIENT:
         return
     if os.path.exists(THRESHOLD_LSQ_COEFFICIENT_PATH):
@@ -302,6 +323,7 @@ def derive_tag_indices_from_y(y, is_y_true=False, threshold=0.15):
     ans = set()
     if THRESHOLD_LSQ_COEFFICIENT is not None:
         threshold = sum(numpy.append(y, [1.0]) * THRESHOLD_LSQ_COEFFICIENT)
+    # threshold = LR_MODEL.predict(numpy.reshape(y, newshape=(1, 88)))
     threshold = 0.01 if is_y_true else threshold
     for idx in range(len(y)):
         if y[idx] >= threshold:
