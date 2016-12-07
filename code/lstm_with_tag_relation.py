@@ -332,13 +332,11 @@ def derive_tag_indices_from_y(y, is_y_true=False, threshold=0.15):
 
 
 def main():
-    model = new_model()
+    import refined_preprocessing
+    model = new_model(1)
     # model.save_weights(u'../models/model_weights.h5')
-    model.load_weights(u'../models/model_weights.h5')
-
+    print (model.predict(numpy.ones(shape=(1,1536))))
 
 if __name__ == '__main__':
-    # main()
-    gru = new_model()
-    print (gru.predict(numpy.zeros(shape=(5, 24 * 64))))
+    main()
     pass

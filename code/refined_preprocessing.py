@@ -87,9 +87,12 @@ class TagManager(object):
                 big_seq += 1
                 cls.BIG_TAG_COUNT += 1
             else:
-                big_tag_seq = cls.BIG_TAG_TO_SEQ[tag_name.split(u'#')[0]]
+                big_tag = tag_name.split(u'#')[0]
+                big_tag_seq = cls.BIG_TAG_TO_SEQ[big_tag]
                 cls.SUB_TAG_TO_SEQ[tag_name] = cls.SUBTAG_COUNT[big_tag_seq]
-                cls.SEQ_TO_SUB_TAG[cls.SUBTAG_COUNT[big_tag_seq]] = tag_name
+                if big_tag not in cls.SEQ_TO_SUB_TAG:
+                    cls.SEQ_TO_SUB_TAG[big_tag] = {}
+                cls.SEQ_TO_SUB_TAG[big_tag][cls.SUBTAG_COUNT[big_tag_seq]] = tag_name
                 cls.SUBTAG_COUNT[big_tag_seq] += 1
         print (u'refined tag manager loaded..')
 
@@ -251,7 +254,7 @@ def filter_x_y(x, y, related_big_tag):
         for row in y:
             encode = row[0]
             v = numpy.zeros((TagManager.BIG_TAG_COUNT,), dtype='float32')
-            v[encode / (TagManager.MAX_SUB_TAG_COUNT + 1)] = 1.0
+            v[int(encode / (TagManager.MAX_SUB_TAG_COUNT + 1))] = 1.0
             res_y[idx] = v
             idx += 1
         return x, res_y

@@ -14,6 +14,9 @@ import refined_preprocessing
 import nlp_utils
 import os
 import sys
+import copy
+import math
+import heapq
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 
@@ -116,9 +119,9 @@ def train():
         refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN_SP),\
         refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP)
     y_train, y_eval = \
-        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_Y_TRAIN_SP),\
-        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_Y_EVAL_SP)
-
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN_SP),\
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL_SP)
+    print (u'all refined x && y loaded..filtering data set for all big tags')
     all_big_tag_x_train, all_big_tag_y_train = refined_preprocessing.filter_x_y(x_train, y_train, u'all_big_tags')
     all_big_tag_x_eval, all_big_tag_y_eval = refined_preprocessing.filter_x_y(x_eval, y_eval, u'all_big_tags')
     train_big_tag_model(u'all_big_tags', all_big_tag_x_train, all_big_tag_y_train,
@@ -126,24 +129,169 @@ def train():
     for big_tag, big_tag_seq in refined_preprocessing.TagManager.BIG_TAG_TO_SEQ.items():
         if refined_preprocessing.TagManager.SUBTAG_COUNT[big_tag_seq] == 0:
             continue
+        print (u'filtering data set for %s' % big_tag)
         cur_x_train, cur_y_train = refined_preprocessing.filter_x_y(x_train, y_train, big_tag)
         cur_x_eval, cur_y_eval = refined_preprocessing.filter_x_y(x_eval, y_eval, big_tag)
         train_big_tag_model(big_tag, cur_x_train, cur_y_train, cur_x_eval, cur_y_eval)
 
 
-def load_the_whole_model():
-    models = {}
+class ModelManager(object):
+    ALL_MODELS = {}
+
+    @classmethod
+    def load_the_whole_model(cls):
+        models = {}
+        for big_tag, big_tag_seq in refined_preprocessing.TagManager.BIG_TAG_TO_SEQ.items():
+            models[big_tag] = get_model_by_big_tag(big_tag)
+            models[big_tag].load_weights(get_big_tag_model_save_path(big_tag))
+        cls.ALL_MODELS = models
+
+    @classmethod
+    def get_predict_result(cls, big_tag, x):
+        return cls.ALL_MODELS[big_tag].predict(x)
+
+
+class Node(object):
+
+    def __init__(self, x, start_tag, start_probability):
+        self.x = x
+        self.start_tag = start_tag
+        self.cur_tag = start_tag
+        start_probability = K.epsilon() if start_probability < K.epsilon() else start_probability
+        self.cost = math.log(1.0 / start_probability)
+        start_tag_seq = refined_preprocessing.TagManager.BIG_TAG_TO_SEQ[start_tag]
+        self.search_end = False if refined_preprocessing.TagManager.SUBTAG_COUNT[start_tag_seq] != 0 else True
+
+    def __cmp__(self, other):
+        return self.cost - other.cost
+
+    def __unicode__(self):
+        return u'cur_tag: %s, cost: %lf' % (self.cur_tag, self.cost)
+
+    def expand(self, predict_results=None):
+        if self.search_end:
+            return []
+        else:
+            predict_results = ModelManager.get_predict_result(self.cur_tag, self.x) \
+                if predict_results is None else predict_results
+            expand_nodes = []
+            for seq in range(len(predict_results)):
+                p = predict_results[seq]
+                sub_tag = refined_preprocessing.TagManager.SEQ_TO_SUB_TAG[self.start_tag][seq]
+                new_node = copy.copy(self)
+                new_node.cur_tag = sub_tag
+                new_node.search_end = True
+                new_node.cost += math.log(1.0 / p)
+                expand_nodes.append(new_node)
+            return expand_nodes
+
+
+# x is a numpy array (samples, 24*64)
+def predict_eval_data_based_on_a_star(x):
+    print (u'predict model: all_big_tags')
+    predicts = {u'all_big_tags': ModelManager.ALL_MODELS[u'all_big_tags'].predict(x)}
     for big_tag, big_tag_seq in refined_preprocessing.TagManager.BIG_TAG_TO_SEQ.items():
-        models[big_tag] = get_model_by_big_tag(big_tag)
-        models[big_tag].load_weights(get_big_tag_model_save_path(big_tag))
-    return models
+        if refined_preprocessing.TagManager.SUBTAG_COUNT[big_tag_seq] == 0:
+            continue
+        print (u'predict model: %s' % big_tag)
+        predicts[big_tag] = ModelManager.ALL_MODELS[big_tag].predict(x)
+    pred_lists = []
+    for i in range(len(x)):
+        # a-star shortest path finding
+        q = []
+        seq = 0
+        for p in predicts[u'all_big_tags'][i]:
+            heapq.heappush(q, Node(x[i], refined_preprocessing.TagManager.SEQ_TO_BIG_TAG[seq], p))
+            seq += 1
+        while len(q) > 0:
+            front_node = heapq.heappop(q)
+            if front_node.search_end:
+                pred_lists.append([refined_preprocessing.TagManager.idx(front_node.start_tag),
+                                  refined_preprocessing.TagManager.idx(front_node.cur_tag)])
+                break
+            for node in front_node.expand(predict_results=predicts[front_node.big_tag][i]):
+                heapq.heappush(q, node)
+    return pred_lists
 
 
-def predict_based_on_a_star(models, x):
-    first_predict = models[u'all_big_tags'].predict(input)
+def read_refined_eval_y_for_evaluation():
+    eval_y_lists = []
+    for line in open(refined_preprocessing.REFINED_Y_EVAL_SP):
+        eval_y_lists.append([int(pair.split(u',')[1]) for pair in line.split()])
+    return eval_y_lists
 
+
+def subset_evaluator(pred_list, true_list):
+    '''
+    subset
+    '''
+    return set(pred_list) == set(true_list)
+
+
+def hamming_evaluator(pred_list, true_list):
+    """
+    hamming loss
+    """
+    pred_set = set(pred_list)
+    true_set = set(true_list)
+    return len(pred_set ^ true_set)
+
+
+def accuracy_evaluator(pred_list, true_list):
+    """
+    accuracy
+    """
+    pred_set = set(pred_list)
+    true_set = set(true_list)
+    return len(pred_set & true_set) / float(len(pred_set | true_set))
+
+
+def precision_evaluator(pred_list, true_list):
+    """
+    precision
+    """
+    pred_set = set(pred_list)
+    true_set = set(true_list)
+    return len(pred_set & true_set) / float(len(pred_set)) if len(pred_set) != 0 else 0.0
+
+
+def recall_evaluator(pred_list, true_list):
+    """
+    recall
+    """
+    pred_set = set(pred_list)
+    true_set = set(true_list)
+    return len(pred_set & true_set) / float(len(true_set))
+
+
+def big_tag_correctness_evaluator(pred_list, true_list):
+    """
+    big tag correctness
+    """
+    return pred_list[0] == true_list[0]
+
+
+def evaluation_sp(evaluators):
+    x_eval_sp = refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP)
+    print (u'x_eval_sp loaded..start predict')
+    pred_lists = predict_eval_data_based_on_a_star(x_eval_sp)
+    print (u'prediction done..')
+    eval_y_lists = read_refined_eval_y_for_evaluation()
+    for evaluator in evaluators:
+        total_score = 0.0
+        for i in range(len(pred_lists)):
+            total_score += evaluator(pred_lists[i], eval_y_lists[i])
+        total_score /= len(pred_lists)
+        print (evaluator.__doc__)
+        print (total_score)
 
 
 if __name__ == '__main__':
+    # print refined_preprocessing.TagManager.SEQ_TO_SUB_TAG
+    # print refined_preprocessing.TagManager.SEQ_TO_BIG_TAG
+    # print refined_preprocessing.TagManager.IDX_TO_REFINED_TAG
     if sys.argv[1] == u'train':
         train()
+    elif sys.argv[1] == u'eval':
+        evaluation_sp([subset_evaluator, hamming_evaluator, accuracy_evaluator,
+                       precision_evaluator, recall_evaluator, big_tag_correctness_evaluator])
