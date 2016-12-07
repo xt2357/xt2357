@@ -105,33 +105,39 @@ def train_big_tag_model(big_tag, x_train, y_train, x_eval, y_eval):
     model = get_model_by_big_tag(big_tag)
     # load pre-trained weights
     if big_tag != u'all_big_tags':
+        print (u'load all_big_tags model')
         model.load_weights(os.path.join(REFINED_MODEL_WEIGHTS_PATH_ROOT, u'all_big_tags.h5'), by_name=True)
+        print (u'load all_big_tags model done..')
     early_stopping = EarlyStopping(monitor='val_loss', patience=2)
     check_point = ModelCheckpoint(check_point_save_path, save_weights_only=True)
+    print (u'start train model for big tag: %s' % big_tag)
     model.fit(x_train, y_train, validation_data=(x_eval, y_eval),
               batch_size=64, nb_epoch=4, callbacks=[early_stopping, check_point])
     model.save_weights(model_weights_save_path)
-    print (u'model train done, weights saved to %s' % model_weights_save_path)
+    print (u'model for big tag: %s train done, weights saved to %s' % (big_tag, model_weights_save_path))
 
 
-def train():
+def train(from_scratch=False):
     x_train, x_eval = \
         refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN_SP),\
         refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP)
     y_train, y_eval = \
         refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN_SP),\
         refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL_SP)
-    print (u'all refined x && y loaded..filtering data set for all big tags')
-    all_big_tag_x_train, all_big_tag_y_train = refined_preprocessing.filter_x_y(x_train, y_train, u'all_big_tags')
-    all_big_tag_x_eval, all_big_tag_y_eval = refined_preprocessing.filter_x_y(x_eval, y_eval, u'all_big_tags')
-    train_big_tag_model(u'all_big_tags', all_big_tag_x_train, all_big_tag_y_train,
-                        all_big_tag_x_eval, all_big_tag_y_eval)
+    print (u'all refined x && y loaded..')
+    if from_scratch:
+        print (u'filtering data set for all big tags')
+        all_big_tag_x_train, all_big_tag_y_train = refined_preprocessing.filter_x_y(x_train, y_train, u'all_big_tags')
+        all_big_tag_x_eval, all_big_tag_y_eval = refined_preprocessing.filter_x_y(x_eval, y_eval, u'all_big_tags')
+        train_big_tag_model(u'all_big_tags', all_big_tag_x_train, all_big_tag_y_train,
+                            all_big_tag_x_eval, all_big_tag_y_eval)
     for big_tag, big_tag_seq in refined_preprocessing.TagManager.BIG_TAG_TO_SEQ.items():
         if refined_preprocessing.TagManager.SUBTAG_COUNT[big_tag_seq] == 0:
             continue
         print (u'filtering data set for %s' % big_tag)
         cur_x_train, cur_y_train = refined_preprocessing.filter_x_y(x_train, y_train, big_tag)
         cur_x_eval, cur_y_eval = refined_preprocessing.filter_x_y(x_eval, y_eval, big_tag)
+        print (u'train sample count: %d, eval sample count: %d' % (len(cur_x_train), len(cur_x_eval)))
         train_big_tag_model(big_tag, cur_x_train, cur_y_train, cur_x_eval, cur_y_eval)
 
 
@@ -209,7 +215,7 @@ def predict_eval_data_based_on_a_star(x):
                 pred_lists.append([refined_preprocessing.TagManager.idx(front_node.start_tag),
                                   refined_preprocessing.TagManager.idx(front_node.cur_tag)])
                 break
-            for node in front_node.expand(predict_results=predicts[front_node.big_tag][i]):
+            for node in front_node.expand(predict_results=predicts[front_node.cur_tag][i]):
                 heapq.heappush(q, node)
     return pred_lists
 
@@ -222,9 +228,9 @@ def read_refined_eval_y_for_evaluation():
 
 
 def subset_evaluator(pred_list, true_list):
-    '''
+    """
     subset
-    '''
+    """
     return set(pred_list) == set(true_list)
 
 

@@ -266,17 +266,19 @@ def filter_x_y(x, y, related_big_tag):
         idx = 0
         res_idx = 0
         for row in y:
-            encode = row[0]
-            if encode / (TagManager.MAX_SUB_TAG_COUNT + 1) != big_tag_seq:
+            # first encode stands for the big tag, the second one is sub tag or -1 if there is no sub tag
+            encode = row[1]
+            if encode == -1 or int(encode / (TagManager.MAX_SUB_TAG_COUNT + 1)) != big_tag_seq:
                 idx += 1
                 continue
             v = numpy.zeros((dim,), dtype='float32')
-            v[encode % (TagManager.MAX_SUB_TAG_COUNT + 1)] = 1.0
+            v[int(encode % (TagManager.MAX_SUB_TAG_COUNT + 1))] = 1.0
             res_y[res_idx] = v
             res_x[res_idx] = x[idx]
             res_idx += 1
             idx += 1
-        return x[:res_idx], res_y[:res_idx]
+        print (u'filter %d samples of big tag: %s from %d samples' % (res_idx, related_big_tag, len(x)))
+        return res_x[:res_idx], res_y[:res_idx]
 
 
 REFINED_X_TRAIN = os.path.join(os.path.dirname(__file__), ur'../data/nyt/refined/refined_x_train.txt')
