@@ -111,18 +111,21 @@ def train_big_tag_model(big_tag, x_train, y_train, x_eval, y_eval):
     early_stopping = EarlyStopping(monitor='val_loss', patience=2)
     check_point = ModelCheckpoint(check_point_save_path, save_weights_only=True)
     print (u'start train model for big tag: %s' % big_tag)
-    model.fit(x_train, y_train, validation_data=(x_eval, y_eval),
-              batch_size=64, nb_epoch=4, callbacks=[early_stopping, check_point])
+    history = model.fit(x_train, y_train, validation_data=(x_eval, y_eval),
+                        batch_size=64, nb_epoch=4, callbacks=[early_stopping, check_point])
     model.save_weights(model_weights_save_path)
     print (u'model for big tag: %s train done, weights saved to %s' % (big_tag, model_weights_save_path))
+    history_path = os.path.join(REFINED_MODEL_WEIGHTS_PATH_ROOT, u'%s history.txt' % big_tag)
+    with codecs.open(history_path, 'w', 'utf8') as history_output:
+        history_output.write(unicode(history.history))
 
 
 def train(from_scratch=False):
     x_train, x_eval = \
-        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN_SP),\
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN_SP), \
         refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP)
     y_train, y_eval = \
-        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN_SP),\
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN_SP), \
         refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL_SP)
     print (u'all refined x && y loaded..')
     if from_scratch:
@@ -146,11 +149,17 @@ class ModelManager(object):
 
     @classmethod
     def load_the_whole_model(cls):
-        models = {}
+        print (u'loading the whole model')
+        models = {u'all_big_tags': get_model_by_big_tag(u'all_big_tags')}
+        models[u'all_big_tags'].load_weights(get_big_tag_model_save_path(u'all_big_tags'))
         for big_tag, big_tag_seq in refined_preprocessing.TagManager.BIG_TAG_TO_SEQ.items():
+            if refined_preprocessing.TagManager.SUBTAG_COUNT[big_tag_seq] == 0:
+                continue
+            print (u'loading model of big tag: %s' % big_tag)
             models[big_tag] = get_model_by_big_tag(big_tag)
             models[big_tag].load_weights(get_big_tag_model_save_path(big_tag))
         cls.ALL_MODELS = models
+        print (u'loading the whole model done..')
 
     @classmethod
     def get_predict_result(cls, big_tag, x):
@@ -158,7 +167,6 @@ class ModelManager(object):
 
 
 class Node(object):
-
     def __init__(self, x, start_tag, start_probability):
         self.x = x
         self.start_tag = start_tag
@@ -194,7 +202,10 @@ class Node(object):
 
 # x is a numpy array (samples, 24*64)
 def predict_eval_data_based_on_a_star(x):
+    ModelManager.load_the_whole_model()
     print (u'predict model: all_big_tags')
+    # print (x.shape)
+    # print (ModelManager.ALL_MODELS[u'all_big_tags'].predict(x).shape)
     predicts = {u'all_big_tags': ModelManager.ALL_MODELS[u'all_big_tags'].predict(x)}
     for big_tag, big_tag_seq in refined_preprocessing.TagManager.BIG_TAG_TO_SEQ.items():
         if refined_preprocessing.TagManager.SUBTAG_COUNT[big_tag_seq] == 0:
@@ -213,17 +224,21 @@ def predict_eval_data_based_on_a_star(x):
             front_node = heapq.heappop(q)
             if front_node.search_end:
                 pred_lists.append([refined_preprocessing.TagManager.idx(front_node.start_tag),
-                                  refined_preprocessing.TagManager.idx(front_node.cur_tag)])
+                                   refined_preprocessing.TagManager.idx(front_node.cur_tag)])
                 break
             for node in front_node.expand(predict_results=predicts[front_node.cur_tag][i]):
                 heapq.heappush(q, node)
     return pred_lists
 
 
-def read_refined_eval_y_for_evaluation():
+def read_refined_eval_y_for_evaluation(size=None):
     eval_y_lists = []
+    cnt = 0
     for line in open(refined_preprocessing.REFINED_Y_EVAL_SP):
         eval_y_lists.append([int(pair.split(u',')[1]) for pair in line.split()])
+        cnt += 1
+        if size and cnt == size:
+            break
     return eval_y_lists
 
 
@@ -277,12 +292,12 @@ def big_tag_correctness_evaluator(pred_list, true_list):
     return pred_list[0] == true_list[0]
 
 
-def evaluation_sp(evaluators):
-    x_eval_sp = refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP)
+def evaluation_sp(evaluators, size=None):
+    x_eval_sp = refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP, size=size)
     print (u'x_eval_sp loaded..start predict')
     pred_lists = predict_eval_data_based_on_a_star(x_eval_sp)
     print (u'prediction done..')
-    eval_y_lists = read_refined_eval_y_for_evaluation()
+    eval_y_lists = read_refined_eval_y_for_evaluation(size=size)
     for evaluator in evaluators:
         total_score = 0.0
         for i in range(len(pred_lists)):
@@ -300,4 +315,5 @@ if __name__ == '__main__':
         train()
     elif sys.argv[1] == u'eval':
         evaluation_sp([subset_evaluator, hamming_evaluator, accuracy_evaluator,
-                       precision_evaluator, recall_evaluator, big_tag_correctness_evaluator])
+                       precision_evaluator, recall_evaluator, big_tag_correctness_evaluator],
+                      int(sys.argv[2]) if len(sys.argv) >= 3 else None)

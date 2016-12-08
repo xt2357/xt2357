@@ -85,7 +85,6 @@ class TagManager(object):
                 cls.BIG_TAG_TO_SEQ[tag_name] = big_seq
                 cls.SEQ_TO_BIG_TAG[big_seq] = tag_name
                 big_seq += 1
-                cls.BIG_TAG_COUNT += 1
             else:
                 big_tag = tag_name.split(u'#')[0]
                 big_tag_seq = cls.BIG_TAG_TO_SEQ[big_tag]
