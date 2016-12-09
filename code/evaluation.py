@@ -4,6 +4,7 @@ import preprocessing
 import numpy
 import sys
 import os
+import refined_preprocessing
 
 
 def sample_based_validation(x_eval, y_eval, trained_model, threshold):
@@ -97,6 +98,20 @@ def ranking_loss_evaluator(y_pred, y_true):
     return reverse_pair / len(true_set) / len(others)
 
 
+def big_tag_correctness_evaluator(y_pred, y_true):
+    """
+    big tag correctness
+    """
+    pred_set = my_model.derive_tag_indices_from_y(y_pred)
+    true_set = my_model.derive_tag_indices_from_y(y_true, is_y_true=True)
+    big_tag_idx = 0
+    for tag_idx in true_set:
+        if refined_preprocessing.TagManager.IDX_TO_REFINED_TAG[tag_idx].find(u'#') == -1:
+            big_tag_idx = tag_idx
+            break
+    return big_tag_idx in pred_set
+
+
 # def average_precision_evaluator(y_pred, y_true):
 #     """
 #     ranking: average precision
@@ -139,8 +154,8 @@ def evaluation_on_refined_data(model_weights_path, evaluators):
         model = my_model.new_model()
         model.load_weights(model_weights_path)
     x_eval, y_eval = \
-        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL), \
-        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL, return_idx=True)
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP), \
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL_SP, return_idx=True)
     print (u'eval data loaded')
     y_pred = model.predict(x_eval)
     print (u'all prediction done')

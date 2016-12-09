@@ -156,12 +156,12 @@ def train_on_refined_data():
     import refined_preprocessing
     model = new_model(refined_preprocessing.TagManager.REFINED_TAG_DICT_SIZE)
     x_train, y_train = \
-        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN),\
-        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN, return_idx=True)
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN_SP),\
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN_SP, return_idx=True)
     print (u'train data loaded')
     x_eval, y_eval = \
-        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL), \
-        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL, return_idx=True)
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP), \
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL_SP, return_idx=True)
     print (u'eval data loaded')
     early_stopping = EarlyStopping(monitor='val_loss', patience=2)
     check_point = ModelCheckpoint(MODEL_PATH, save_weights_only=True)
@@ -206,8 +206,8 @@ def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None, on_ref
         if on_refined_data:
             import refined_preprocessing
             x_train, y_train = \
-                refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN, sample_size), \
-                refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN, sample_size, return_idx=True)
+                refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN_SP, sample_size), \
+                refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN_SP, sample_size, return_idx=True)
         else:
             x_train, y_train = \
                 preprocessing.read_x(preprocessing.X_TRAIN_IGNORE_STOP_PATH, sample_size), \

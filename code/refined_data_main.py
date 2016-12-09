@@ -16,7 +16,7 @@ if __name__ == '__main__':
     elif sys.argv[1] == u'eval':
         evaluation_on_refined_data(sys.argv[2],
                                    [subset_evaluator, hamming_evaluator, accuracy_evaluator, precision_evaluator,
-                                    recall_evaluator,
+                                    recall_evaluator, big_tag_correctness_evaluator,
                                     one_error_evaluator, coverage_evaluator])
     elif sys.argv[1] == u'p_relation':
         print_relation(sys.argv[2])

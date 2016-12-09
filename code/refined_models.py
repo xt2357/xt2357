@@ -312,7 +312,7 @@ if __name__ == '__main__':
     # print refined_preprocessing.TagManager.SEQ_TO_BIG_TAG
     # print refined_preprocessing.TagManager.IDX_TO_REFINED_TAG
     if sys.argv[1] == u'train':
-        train()
+        train(from_scratch=bool(sys.argv[2] if len(sys.argv) >= 3 else False))
     elif sys.argv[1] == u'eval':
         evaluation_sp([subset_evaluator, hamming_evaluator, accuracy_evaluator,
                        precision_evaluator, recall_evaluator, big_tag_correctness_evaluator],
