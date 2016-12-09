@@ -21,12 +21,12 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
     word_lstm_model = Sequential()
     word_lstm_model.add(Masking(input_shape=(nb_words, word_embedding_dim)))
     word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(None, word_embedding_dim),
-                    activation=u'tanh', inner_activation=u'hard_sigmoid')
+                     activation=u'tanh', inner_activation=u'hard_sigmoid')
     word_lstm_model.add(word_lstm)
     sentence_lstm_model = Sequential()
     sentence_lstm_model.add(Masking(input_shape=(nb_sentence, sentence_embedding_dim)))
     sentence_lstm = LSTM(output_dim=document_embedding_dim, input_shape=(None, sentence_embedding_dim),
-                        activation=u'tanh', inner_activation=u'hard_sigmoid')
+                         activation=u'tanh', inner_activation=u'hard_sigmoid')
     sentence_lstm_model.add(sentence_lstm)
     relation_layer = Dense(output_dim=nb_tags, input_shape=(nb_tags,),
                            name=u'relation', bias=False, W_regularizer=l2(0.01), W_constraint=unitnorm(axis=0))
@@ -44,6 +44,46 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
 
     def masked_simplified_lstm_loss(y_true, y_pred):
         return K.categorical_crossentropy(y_pred, y_true) - K.sum(y_true * relation_layer.call(y_true), axis=-1)
+
+    def masked_simplified_lstm_loss_cross_entropy(y_true, y_pred):
+        return K.categorical_crossentropy(y_pred, y_true) + \
+               K.categorical_crossentropy(y_true, relation_layer.call(y_true))
+
+    def masked_simplified_lstm_loss_without_relation(y_true, y_pred):
+        return K.categorical_crossentropy(y_pred, y_true)
+
+    model = Model(input=input_layer, output=output_layer)
+    model.compile(loss=masked_simplified_lstm_loss, optimizer='rmsprop')
+    return model
+
+
+def pure_lstm_with_softmax(nb_sentence, nb_words, dict_size, word_embedding_weights,
+                           word_embedding_dim, sentence_embedding_dim, document_embedding_dim, nb_tags):
+    word_lstm_model = Sequential()
+    word_lstm_model.add(Masking(input_shape=(nb_words, word_embedding_dim)))
+    word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(None, word_embedding_dim),
+                     activation=u'tanh', inner_activation=u'hard_sigmoid')
+    word_lstm_model.add(word_lstm)
+    sentence_lstm_model = Sequential()
+    sentence_lstm_model.add(Masking(input_shape=(nb_sentence, sentence_embedding_dim)))
+    sentence_lstm = LSTM(output_dim=document_embedding_dim, input_shape=(None, sentence_embedding_dim),
+                         activation=u'tanh', inner_activation=u'hard_sigmoid')
+    sentence_lstm_model.add(sentence_lstm)
+    relation_layer = Dense(output_dim=nb_tags, input_shape=(nb_tags,),
+                           name=u'relation', bias=False, W_regularizer=l2(0.01), W_constraint=unitnorm(axis=0))
+    total_words = nb_words * nb_sentence
+    input_layer = Input(shape=(total_words,))
+    embedding_layer = \
+        Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=False)(input_layer)
+    first_reshape = Reshape((nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
+    sentence_embeddings = TimeDistributed(word_lstm_model)(first_reshape)
+    document_embedding = sentence_lstm_model(sentence_embeddings)
+    dense_layer = Dense(output_dim=nb_tags, input_shape=(document_embedding_dim,), activation=u'tanh',
+                        W_regularizer=l2(0.01))(document_embedding)
+    output_layer = Activation(activation=u'softmax')(dense_layer)
+
+    def masked_simplified_lstm_loss(y_true, y_pred):
+        return K.categorical_crossentropy(y_pred, y_true)
 
     def masked_simplified_lstm_loss_cross_entropy(y_true, y_pred):
         return K.categorical_crossentropy(y_pred, y_true) + \
@@ -108,13 +148,21 @@ def gru_with_attention(nb_sentence, nb_words, dict_size, word_embedding_weights,
     return model
 
 
-def new_model(tag_count=preprocessing.MEANINGFUL_TAG_SIZE):
-    return masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
-                                  preprocessing.MAX_WORDS_IN_SENTENCE,
-                                  preprocessing.DICT_SIZE,
-                                  read_embedding_weights(
-                                      preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
-                                  preprocessing.NYT_WORD_EMBEDDING_DIM, 450, 800, tag_count)
+def new_model(tag_count=preprocessing.MEANINGFUL_TAG_SIZE, baseline=False):
+    if baseline:
+        return pure_lstm_with_softmax(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
+                                      preprocessing.MAX_WORDS_IN_SENTENCE,
+                                      preprocessing.DICT_SIZE,
+                                      read_embedding_weights(
+                                          preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
+                                      preprocessing.NYT_WORD_EMBEDDING_DIM, 450, 800, tag_count)
+    else:
+        return masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
+                                      preprocessing.MAX_WORDS_IN_SENTENCE,
+                                      preprocessing.DICT_SIZE,
+                                      read_embedding_weights(
+                                          preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
+                                      preprocessing.NYT_WORD_EMBEDDING_DIM, 450, 800, tag_count)
 
 
 def read_embedding_weights(nyt_word_embedding_path):
@@ -156,7 +204,7 @@ def train_on_refined_data():
     import refined_preprocessing
     model = new_model(refined_preprocessing.TagManager.REFINED_TAG_DICT_SIZE)
     x_train, y_train = \
-        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN_SP),\
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN_SP), \
         refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN_SP, return_idx=True)
     print (u'train data loaded')
     x_eval, y_eval = \
@@ -173,6 +221,29 @@ def train_on_refined_data():
     with codecs.open(HISTORY_PATH, 'w', 'utf8') as history_output:
         history_output.write(unicode(history.history))
     lsq(MODEL_WEIGHTS_PATH, x_train, y_train, on_refined_data=True)
+
+
+def train_baseline():
+    import refined_preprocessing
+    model = new_model(refined_preprocessing.TagManager.REFINED_TAG_DICT_SIZE, baseline=True)
+    x_train, y_train = \
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN_SP), \
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN_SP, return_idx=True)
+    print (u'train data loaded')
+    x_eval, y_eval = \
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP), \
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL_SP, return_idx=True)
+    print (u'eval data loaded')
+    early_stopping = EarlyStopping(monitor='val_loss', patience=2)
+    check_point = ModelCheckpoint(MODEL_PATH, save_weights_only=True)
+    history = model.fit(x_train, y_train, callbacks=[early_stopping, check_point], validation_data=(x_eval, y_eval),
+                        nb_epoch=4, batch_size=64, sample_weight=None)
+    model.save_weights(MODEL_WEIGHTS_PATH)
+    print (u'model saved to %s' % MODEL_WEIGHTS_PATH)
+    print (history.history)
+    with codecs.open(HISTORY_PATH, 'w', 'utf8') as history_output:
+        history_output.write(unicode(history.history))
+    lsq(MODEL_WEIGHTS_PATH, x_train, y_train, on_refined_data=True, baseline=True)
 
 
 def train():
@@ -201,21 +272,25 @@ def train():
     lsq(MODEL_WEIGHTS_PATH, x_train, y_train)
 
 
-def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None, on_refined_data=False):
+def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None, on_refined_data=False, baseline=False):
     if x_train is None:
         if on_refined_data:
             import refined_preprocessing
             x_train, y_train = \
                 refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_TRAIN_SP, sample_size), \
-                refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN_SP, sample_size, return_idx=True)
+                refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_TRAIN_SP, sample_size,
+                                                     return_idx=True)
         else:
             x_train, y_train = \
                 preprocessing.read_x(preprocessing.X_TRAIN_IGNORE_STOP_PATH, sample_size), \
                 preprocessing.read_y(preprocessing.Y_TRAIN_IGNORE_STOP_PATH, sample_size)
         print (u'train data loaded')
     from scipy.optimize import leastsq
+    import refined_preprocessing
     from numpy.linalg import lstsq
-    model = new_model()
+    model = new_model(refined_preprocessing.TagManager.REFINED_TAG_DICT_SIZE) if on_refined_data else new_model()
+    if baseline:
+        model = new_model(baseline=True)
     print (u'lsq loading model %s' % trained_model_path)
     if trained_model_path.endswith(u'hdf5'):
         model = keras.models.load_model(trained_model_path)
@@ -274,9 +349,11 @@ def lsq(trained_model_path, x_train=None, y_train=None, sample_size=None, on_ref
 
 def get_lr_model(input_dim):
     lr = Sequential()
-    lr.add(Dense(output_dim=1, input_shape=(input_dim,), activation='sigmoid', W_regularizer=l2(0.01), b_regularizer=l2(0.01)))
+    lr.add(Dense(output_dim=1, input_shape=(input_dim,), activation='sigmoid', W_regularizer=l2(0.01),
+                 b_regularizer=l2(0.01)))
     lr.compile(optimizer='sgd', loss='mean_squared_error')
     return lr
+
 
 LR_MODEL_WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), u"../models/lr_weights.h5")
 
@@ -335,7 +412,8 @@ def main():
     import refined_preprocessing
     model = new_model(1)
     # model.save_weights(u'../models/model_weights.h5')
-    print (model.predict(numpy.ones(shape=(1,1536))))
+    print (model.predict(numpy.ones(shape=(1, 1536))))
+
 
 if __name__ == '__main__':
     main()

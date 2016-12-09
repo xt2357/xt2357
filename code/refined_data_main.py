@@ -11,6 +11,13 @@ def print_usage():
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print_usage()
+    elif sys.argv[1] == u'trainbaseline':
+        train_baseline()
+    elif sys.argv[1] == u'evalbaseline':
+        evaluation_baseline(sys.argv[2],
+                            [subset_evaluator, hamming_evaluator, accuracy_evaluator, precision_evaluator,
+                             recall_evaluator, big_tag_correctness_evaluator,
+                             one_error_evaluator, coverage_evaluator])
     elif sys.argv[1] == u'train':
         train_on_refined_data()
     elif sys.argv[1] == u'eval':

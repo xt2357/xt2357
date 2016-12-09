@@ -151,7 +151,31 @@ def evaluation_on_refined_data(model_weights_path, evaluators):
         import keras
         model = keras.models.load_model(model_weights_path)
     else:
-        model = my_model.new_model()
+        model = my_model.new_model(refined_preprocessing.TagManager.REFINED_TAG_DICT_SIZE)
+        model.load_weights(model_weights_path)
+    x_eval, y_eval = \
+        refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP), \
+        refined_preprocessing.read_refined_y(refined_preprocessing.REFINED_Y_EVAL_SP, return_idx=True)
+    print (u'eval data loaded')
+    y_pred = model.predict(x_eval)
+    print (u'all prediction done')
+    for evaluator in evaluators:
+        total_score = 0.0
+        for idx in range(len(y_pred)):
+            total_score += evaluator(y_pred[idx], y_eval[idx])
+        total_score /= len(y_pred)
+        print (evaluator.__doc__)
+        print (total_score)
+
+
+def evaluation_baseline(model_weights_path, evaluators):
+    import refined_preprocessing
+    my_model.read_threshold_lsq_coefficient()
+    if model_weights_path.endswith(u'hdf5'):
+        import keras
+        model = keras.models.load_model(model_weights_path)
+    else:
+        model = my_model.new_model(refined_preprocessing.TagManager.REFINED_TAG_DICT_SIZE, baseline=True)
         model.load_weights(model_weights_path)
     x_eval, y_eval = \
         refined_preprocessing.read_refined_x(refined_preprocessing.REFINED_X_EVAL_SP), \
