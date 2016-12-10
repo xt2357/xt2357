@@ -172,7 +172,7 @@ class Node(object):
         self.start_tag = start_tag
         self.cur_tag = start_tag
         start_probability = K.epsilon() if start_probability < K.epsilon() else start_probability
-        self.cost = math.log(1.0 / start_probability)
+        self.cost = 1.0 / start_probability
         start_tag_seq = refined_preprocessing.TagManager.BIG_TAG_TO_SEQ[start_tag]
         self.search_end = False if refined_preprocessing.TagManager.SUBTAG_COUNT[start_tag_seq] != 0 else True
 
@@ -195,23 +195,38 @@ class Node(object):
                 new_node = copy.copy(self)
                 new_node.cur_tag = sub_tag
                 new_node.search_end = True
-                new_node.cost += math.log(1.0 / p)
+                new_node.cost += 1.0 / p
                 expand_nodes.append(new_node)
             return expand_nodes
+
+
+def get_predict_save_path(tag):
+    return os.path.join(REFINED_MODEL_WEIGHTS_PATH_ROOT, u'%s predicts.npy' % tag)
 
 
 # x is a numpy array (samples, 24*64)
 def predict_eval_data_based_on_a_star(x):
     ModelManager.load_the_whole_model()
-    print (u'predict model: all_big_tags')
     # print (x.shape)
     # print (ModelManager.ALL_MODELS[u'all_big_tags'].predict(x).shape)
-    predicts = {u'all_big_tags': ModelManager.ALL_MODELS[u'all_big_tags'].predict(x)}
-    for big_tag, big_tag_seq in refined_preprocessing.TagManager.BIG_TAG_TO_SEQ.items():
-        if refined_preprocessing.TagManager.SUBTAG_COUNT[big_tag_seq] == 0:
-            continue
-        print (u'predict model: %s' % big_tag)
-        predicts[big_tag] = ModelManager.ALL_MODELS[big_tag].predict(x)
+    predicts = {}
+    if os.path.exists(get_predict_save_path(u'all_big_tags')):
+        predicts[u'all_big_tags'] = numpy.load(get_predict_save_path(u'all_big_tags'))
+        for big_tag, big_tag_seq in refined_preprocessing.TagManager.BIG_TAG_TO_SEQ.items():
+            if refined_preprocessing.TagManager.SUBTAG_COUNT[big_tag_seq] == 0:
+                continue
+            print (u'loading predict of %s' % big_tag)
+            predicts[big_tag] = numpy.load(get_predict_save_path(big_tag))
+    else:
+        print (u'predict model: all_big_tags')
+        predicts[u'all_big_tags'] = ModelManager.ALL_MODELS[u'all_big_tags'].predict(x)
+        for big_tag, big_tag_seq in refined_preprocessing.TagManager.BIG_TAG_TO_SEQ.items():
+            if refined_preprocessing.TagManager.SUBTAG_COUNT[big_tag_seq] == 0:
+                continue
+            print (u'predict model: %s' % big_tag)
+            predicts[big_tag] = ModelManager.ALL_MODELS[big_tag].predict(x)
+        for tag, predict in predicts.items():
+            numpy.save(get_predict_save_path(tag), predict)
     pred_lists = []
     for i in range(len(x)):
         # a-star shortest path finding
