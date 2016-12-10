@@ -57,44 +57,54 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
     return model
 
 
-def pure_lstm_with_softmax(nb_sentence, nb_words, dict_size, word_embedding_weights,
-                           word_embedding_dim, sentence_embedding_dim, document_embedding_dim, nb_tags):
-    word_lstm_model = Sequential()
-    word_lstm_model.add(Masking(input_shape=(nb_words, word_embedding_dim)))
-    word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(None, word_embedding_dim),
-                     activation=u'tanh', inner_activation=u'hard_sigmoid')
-    word_lstm_model.add(word_lstm)
-    sentence_lstm_model = Sequential()
-    sentence_lstm_model.add(Masking(input_shape=(nb_sentence, sentence_embedding_dim)))
-    sentence_lstm = LSTM(output_dim=document_embedding_dim, input_shape=(None, sentence_embedding_dim),
-                         activation=u'tanh', inner_activation=u'hard_sigmoid')
-    sentence_lstm_model.add(sentence_lstm)
-    relation_layer = Dense(output_dim=nb_tags, input_shape=(nb_tags,),
-                           name=u'relation', bias=False, W_regularizer=l2(0.01), W_constraint=unitnorm(axis=0))
+# multi class logistic regression
+def baseline_model(nb_sentence, nb_words, dict_size, word_embedding_weights,
+                   word_embedding_dim, sentence_embedding_dim, document_embedding_dim, nb_tags):
     total_words = nb_words * nb_sentence
     input_layer = Input(shape=(total_words,))
     embedding_layer = \
         Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=False)(input_layer)
-    first_reshape = Reshape((nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
-    sentence_embeddings = TimeDistributed(word_lstm_model)(first_reshape)
-    document_embedding = sentence_lstm_model(sentence_embeddings)
-    dense_layer = Dense(output_dim=nb_tags, input_shape=(document_embedding_dim,), activation=u'tanh',
-                        W_regularizer=l2(0.01))(document_embedding)
-    output_layer = Activation(activation=u'softmax')(dense_layer)
+    reshape_layer = Reshape((total_words * word_embedding_dim,))(embedding_layer)
+
+    output_layer = Dense(output_dim=nb_tags, activation=u'softmax',
+                         W_regularizer=l2(0.01))(reshape_layer)
 
     def masked_simplified_lstm_loss(y_true, y_pred):
         return K.categorical_crossentropy(y_pred, y_true)
 
-    def masked_simplified_lstm_loss_cross_entropy(y_true, y_pred):
-        return K.categorical_crossentropy(y_pred, y_true) + \
-               K.categorical_crossentropy(y_true, relation_layer.call(y_true))
-
-    def masked_simplified_lstm_loss_without_relation(y_true, y_pred):
-        return K.categorical_crossentropy(y_pred, y_true)
-
     model = Model(input=input_layer, output=output_layer)
-    model.compile(loss=masked_simplified_lstm_loss, optimizer='rmsprop')
+    model.compile(loss=masked_simplified_lstm_loss, optimizer='sgd')
     return model
+
+# pure lstm model
+# def baseline_model(nb_sentence, nb_words, dict_size, word_embedding_weights,
+#                    word_embedding_dim, sentence_embedding_dim, document_embedding_dim, nb_tags):
+#     word_lstm_model = Sequential()
+#     word_lstm_model.add(Masking(input_shape=(nb_words, word_embedding_dim)))
+#     word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(None, word_embedding_dim),
+#                      activation=u'tanh', inner_activation=u'hard_sigmoid')
+#     word_lstm_model.add(word_lstm)
+#     sentence_lstm_model = Sequential()
+#     sentence_lstm_model.add(Masking(input_shape=(nb_sentence, sentence_embedding_dim)))
+#     sentence_lstm = LSTM(output_dim=document_embedding_dim, input_shape=(None, sentence_embedding_dim),
+#                          activation=u'tanh', inner_activation=u'hard_sigmoid')
+#     sentence_lstm_model.add(sentence_lstm)
+#     total_words = nb_words * nb_sentence
+#     input_layer = Input(shape=(total_words,))
+#     embedding_layer = \
+#         Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=False)(input_layer)
+#     first_reshape = Reshape((nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
+#     sentence_embeddings = TimeDistributed(word_lstm_model)(first_reshape)
+#     document_embedding = sentence_lstm_model(sentence_embeddings)
+#     output_layer = Dense(output_dim=nb_tags, input_shape=(document_embedding_dim,), activation=u'softmax',
+#                          W_regularizer=l2(0.01))(document_embedding)
+#
+#     def masked_simplified_lstm_loss(y_true, y_pred):
+#         return K.categorical_crossentropy(y_pred, y_true)
+#
+#     model = Model(input=input_layer, output=output_layer)
+#     model.compile(loss=masked_simplified_lstm_loss, optimizer='rmsprop')
+#     return model
 
 
 def gru_with_attention(nb_sentence, nb_words, dict_size, word_embedding_weights,
@@ -150,12 +160,12 @@ def gru_with_attention(nb_sentence, nb_words, dict_size, word_embedding_weights,
 
 def new_model(tag_count=preprocessing.MEANINGFUL_TAG_SIZE, baseline=False):
     if baseline:
-        return pure_lstm_with_softmax(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
-                                      preprocessing.MAX_WORDS_IN_SENTENCE,
-                                      preprocessing.DICT_SIZE,
-                                      read_embedding_weights(
-                                          preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
-                                      preprocessing.NYT_WORD_EMBEDDING_DIM, 450, 800, tag_count)
+        return baseline_model(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
+                              preprocessing.MAX_WORDS_IN_SENTENCE,
+                              preprocessing.DICT_SIZE,
+                              read_embedding_weights(
+                                  preprocessing.NYT_IGNORE_CASE_WORD_EMBEDDING_PATH),
+                              preprocessing.NYT_WORD_EMBEDDING_DIM, 450, 800, tag_count)
     else:
         return masked_simplified_lstm(preprocessing.MAX_SENTENCES_IN_DOCUMENT,
                                       preprocessing.MAX_WORDS_IN_SENTENCE,
