@@ -111,8 +111,8 @@
       <file leaf-file-name="refined_models.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/code/refined_models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="22">
-              <caret line="208" column="39" selection-start-line="208" selection-start-column="39" selection-end-line="208" selection-end-column="39" />
+            <state relative-caret-position="132">
+              <caret line="207" column="41" selection-start-line="207" selection-start-column="41" selection-end-line="207" selection-end-column="41" />
               <folding>
                 <element signature="e#14#148#0" expanded="true" />
               </folding>
@@ -887,7 +887,14 @@
       <option name="project" value="LOCAL" />
       <updated>1481356114984</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="supporting predictions save &amp; load &amp;&amp; change A* cost to 1/p">
+      <created>1481385928874</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1481385928874</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="TodoView" selected-index="1">
@@ -954,7 +961,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add unit norm constraint on relation layer &amp;&amp; add eval code" />
     <MESSAGE value="minor changes" />
     <MESSAGE value="change loss function" />
     <MESSAGE value="delete extra code" />
@@ -979,7 +985,8 @@
     <MESSAGE value="using the same data set to evaluate two models" />
     <MESSAGE value="add baseline model" />
     <MESSAGE value="add lr baseline model" />
-    <option name="LAST_COMMIT_MESSAGE" value="add lr baseline model" />
+    <MESSAGE value="supporting predictions save &amp; load &amp;&amp; change A* cost to 1/p" />
+    <option name="LAST_COMMIT_MESSAGE" value="supporting predictions save &amp; load &amp;&amp; change A* cost to 1/p" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1413,8 +1420,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/code/refined_models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="22">
-          <caret line="208" column="39" selection-start-line="208" selection-start-column="39" selection-end-line="208" selection-end-column="39" />
+        <state relative-caret-position="132">
+          <caret line="207" column="41" selection-start-line="207" selection-start-column="41" selection-end-line="207" selection-end-column="41" />
           <folding>
             <element signature="e#14#148#0" expanded="true" />
           </folding>

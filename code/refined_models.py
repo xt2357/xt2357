@@ -206,7 +206,6 @@ def get_predict_save_path(tag):
 
 # x is a numpy array (samples, 24*64)
 def predict_eval_data_based_on_a_star(x):
-    ModelManager.load_the_whole_model()
     # print (x.shape)
     # print (ModelManager.ALL_MODELS[u'all_big_tags'].predict(x).shape)
     predicts = {}
@@ -218,6 +217,7 @@ def predict_eval_data_based_on_a_star(x):
             print (u'loading predict of %s' % big_tag)
             predicts[big_tag] = numpy.load(get_predict_save_path(big_tag))
     else:
+        ModelManager.load_the_whole_model()
         print (u'predict model: all_big_tags')
         predicts[u'all_big_tags'] = ModelManager.ALL_MODELS[u'all_big_tags'].predict(x)
         for big_tag, big_tag_seq in refined_preprocessing.TagManager.BIG_TAG_TO_SEQ.items():
