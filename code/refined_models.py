@@ -167,10 +167,9 @@ class ModelManager(object):
 
 
 class Node(object):
-    def __init__(self, x, start_tag, start_estimated_cost):
+    def __init__(self, x, start_tag=None, start_estimated_cost=0.0):
         self.x = x
         self.path = [start_tag]
-        self.cur_tag = start_tag
         # start_estimated_cost = K.epsilon() if start_estimated_cost < K.epsilon() else start_estimated_cost
         self.cost = start_estimated_cost
         self.search_end = False
@@ -179,23 +178,23 @@ class Node(object):
         return self.cost - other.cost
 
     def __unicode__(self):
-        return u'cur_tag: %s, cost: %lf' % (self.cur_tag, self.cost)
+        return u'cur_tag: %s, cost: %lf' % (self.path[-1], self.cost)
 
     def expand(self, predict_results=None):
         if self.search_end:
             return []
         else:
-            predict_results = ModelManager.get_predict_result(self.cur_tag, self.x) \
+            predict_results = ModelManager.get_predict_result(self.path[-1], self.x) \
                 if predict_results is None else predict_results
             expand_nodes = []
             for seq in range(len(predict_results)):
                 p = predict_results[seq]
                 p = K.epsilon() if p < K.epsilon() else p
-                sub_tag = refined_preprocessing.TagManager.SEQ_TO_SUB_TAG[self.cur_tag][seq]
-                new_node = copy.deepcopy(self)
+                sub_tag = refined_preprocessing.TagManager.SEQ_TO_SUB_TAG[self.path[-1]][seq]
+                new_node = Node(self.x)
+                new_node.path = self.path[:]
                 new_node.path.append(sub_tag)
-                new_node.cur_tag = sub_tag
-                new_node.search_end = True if new_node.cur_tag not in refined_preprocessing.TagManager.SEQ_TO_SUB_TAG \
+                new_node.search_end = True if new_node.path[-1] not in refined_preprocessing.TagManager.SEQ_TO_SUB_TAG \
                     else False
                 new_node.cost += 1.0 / p
                 expand_nodes.append(new_node)
@@ -239,7 +238,7 @@ def predict_eval_data_based_on_a_star(x):
             if front_node.search_end:
                 pred_lists.append([refined_preprocessing.TagManager.idx(tag) for tag in front_node.path[1:]])
                 break
-            for node in front_node.expand(predict_results=predicts[front_node.cur_tag][i]):
+            for node in front_node.expand(predict_results=predicts[front_node.path[-1]][i]):
                 heapq.heappush(q, node)
     return pred_lists
 
