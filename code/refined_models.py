@@ -186,6 +186,10 @@ class Node(object):
         else:
             predict_results = ModelManager.get_predict_result(self.path[-1], self.x) \
                 if predict_results is None else predict_results
+            arg_sorted_predict = numpy.argsort(predict_results)
+            ranks = [0] * len(arg_sorted_predict)
+            for i in range(len(arg_sorted_predict) - 1, -1, -1):
+                ranks[arg_sorted_predict[i]] = len(arg_sorted_predict) - i
             expand_nodes = []
             for seq in range(len(predict_results)):
                 p = predict_results[seq]
@@ -196,7 +200,7 @@ class Node(object):
                 new_node.path.append(sub_tag)
                 new_node.search_end = True if new_node.path[-1] not in refined_preprocessing.TagManager.SEQ_TO_SUB_TAG \
                     else False
-                new_node.cost += 1.0 / p
+                new_node.cost += ranks[seq]
                 expand_nodes.append(new_node)
             return expand_nodes
 
