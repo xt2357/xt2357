@@ -167,14 +167,13 @@ class ModelManager(object):
 
 
 class Node(object):
-    def __init__(self, x, start_tag, start_probability):
+    def __init__(self, x, start_tag, start_estimated_cost):
         self.x = x
-        self.start_tag = start_tag
+        self.path = [start_tag]
         self.cur_tag = start_tag
-        start_probability = K.epsilon() if start_probability < K.epsilon() else start_probability
-        self.cost = 1.0 / start_probability
-        start_tag_seq = refined_preprocessing.TagManager.BIG_TAG_TO_SEQ[start_tag]
-        self.search_end = False if refined_preprocessing.TagManager.SUBTAG_COUNT[start_tag_seq] != 0 else True
+        # start_estimated_cost = K.epsilon() if start_estimated_cost < K.epsilon() else start_estimated_cost
+        self.cost = start_estimated_cost
+        self.search_end = False
 
     def __cmp__(self, other):
         return self.cost - other.cost
@@ -191,10 +190,13 @@ class Node(object):
             expand_nodes = []
             for seq in range(len(predict_results)):
                 p = predict_results[seq]
-                sub_tag = refined_preprocessing.TagManager.SEQ_TO_SUB_TAG[self.start_tag][seq]
-                new_node = copy.copy(self)
+                p = K.epsilon() if p < K.epsilon() else p
+                sub_tag = refined_preprocessing.TagManager.SEQ_TO_SUB_TAG[self.cur_tag][seq]
+                new_node = copy.deepcopy(self)
+                new_node.path.append(sub_tag)
                 new_node.cur_tag = sub_tag
-                new_node.search_end = True
+                new_node.search_end = True if new_node.cur_tag not in refined_preprocessing.TagManager.SEQ_TO_SUB_TAG \
+                    else False
                 new_node.cost += 1.0 / p
                 expand_nodes.append(new_node)
             return expand_nodes
@@ -231,15 +233,11 @@ def predict_eval_data_based_on_a_star(x):
     for i in range(len(x)):
         # a-star shortest path finding
         q = []
-        seq = 0
-        for p in predicts[u'all_big_tags'][i]:
-            heapq.heappush(q, Node(x[i], refined_preprocessing.TagManager.SEQ_TO_BIG_TAG[seq], p))
-            seq += 1
+        heapq.heappush(q, Node(x[i], u'all_big_tags', 0.0))
         while len(q) > 0:
             front_node = heapq.heappop(q)
             if front_node.search_end:
-                pred_lists.append([refined_preprocessing.TagManager.idx(front_node.start_tag),
-                                   refined_preprocessing.TagManager.idx(front_node.cur_tag)])
+                pred_lists.append([refined_preprocessing.TagManager.idx(tag) for tag in front_node.path[1:]])
                 break
             for node in front_node.expand(predict_results=predicts[front_node.cur_tag][i]):
                 heapq.heappush(q, node)

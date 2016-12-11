@@ -84,6 +84,9 @@ class TagManager(object):
             if tag_name.find(u'#') == -1:
                 cls.BIG_TAG_TO_SEQ[tag_name] = big_seq
                 cls.SEQ_TO_BIG_TAG[big_seq] = tag_name
+                if u'all_big_tags' not in cls.SEQ_TO_SUB_TAG:
+                    cls.SEQ_TO_SUB_TAG[u'all_big_tags'] = {}
+                cls.SEQ_TO_SUB_TAG[u'all_big_tags'][big_seq] = tag_name
                 big_seq += 1
             else:
                 big_tag = tag_name.split(u'#')[0]
