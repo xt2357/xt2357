@@ -33,7 +33,7 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
     total_words = nb_words * nb_sentence
     input_layer = Input(shape=(total_words,))
     embedding_layer = \
-        Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=False)(input_layer)
+        Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=True)(input_layer)
     first_reshape = Reshape((nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
     sentence_embeddings = TimeDistributed(word_lstm_model)(first_reshape)
     document_embedding = sentence_lstm_model(sentence_embeddings)
@@ -58,53 +58,53 @@ def masked_simplified_lstm(nb_sentence, nb_words, dict_size, word_embedding_weig
 
 
 # multi class logistic regression
-def baseline_model(nb_sentence, nb_words, dict_size, word_embedding_weights,
-                   word_embedding_dim, sentence_embedding_dim, document_embedding_dim, nb_tags):
-    total_words = nb_words * nb_sentence
-    input_layer = Input(shape=(total_words,))
-    embedding_layer = \
-        Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=False)(input_layer)
-    reshape_layer = Reshape((total_words * word_embedding_dim,))(embedding_layer)
-
-    output_layer = Dense(output_dim=nb_tags, activation=u'softmax',
-                         W_regularizer=l2(0.01))(reshape_layer)
-
-    def masked_simplified_lstm_loss(y_true, y_pred):
-        return K.categorical_crossentropy(y_pred, y_true)
-
-    model = Model(input=input_layer, output=output_layer)
-    model.compile(loss=masked_simplified_lstm_loss, optimizer='sgd')
-    return model
-
-# pure lstm model
 # def baseline_model(nb_sentence, nb_words, dict_size, word_embedding_weights,
 #                    word_embedding_dim, sentence_embedding_dim, document_embedding_dim, nb_tags):
-#     word_lstm_model = Sequential()
-#     word_lstm_model.add(Masking(input_shape=(nb_words, word_embedding_dim)))
-#     word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(None, word_embedding_dim),
-#                      activation=u'tanh', inner_activation=u'hard_sigmoid')
-#     word_lstm_model.add(word_lstm)
-#     sentence_lstm_model = Sequential()
-#     sentence_lstm_model.add(Masking(input_shape=(nb_sentence, sentence_embedding_dim)))
-#     sentence_lstm = LSTM(output_dim=document_embedding_dim, input_shape=(None, sentence_embedding_dim),
-#                          activation=u'tanh', inner_activation=u'hard_sigmoid')
-#     sentence_lstm_model.add(sentence_lstm)
 #     total_words = nb_words * nb_sentence
 #     input_layer = Input(shape=(total_words,))
 #     embedding_layer = \
-#         Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=False)(input_layer)
-#     first_reshape = Reshape((nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
-#     sentence_embeddings = TimeDistributed(word_lstm_model)(first_reshape)
-#     document_embedding = sentence_lstm_model(sentence_embeddings)
-#     output_layer = Dense(output_dim=nb_tags, input_shape=(document_embedding_dim,), activation=u'softmax',
-#                          W_regularizer=l2(0.01))(document_embedding)
+#         Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=True)(input_layer)
+#     reshape_layer = Reshape((total_words * word_embedding_dim,))(embedding_layer)
+#
+#     output_layer = Dense(output_dim=nb_tags, activation=u'softmax',
+#                          W_regularizer=l2(0.01))(reshape_layer)
 #
 #     def masked_simplified_lstm_loss(y_true, y_pred):
 #         return K.categorical_crossentropy(y_pred, y_true)
 #
 #     model = Model(input=input_layer, output=output_layer)
-#     model.compile(loss=masked_simplified_lstm_loss, optimizer='rmsprop')
+#     model.compile(loss=masked_simplified_lstm_loss, optimizer='sgd')
 #     return model
+
+# pure lstm model
+def baseline_model(nb_sentence, nb_words, dict_size, word_embedding_weights,
+                   word_embedding_dim, sentence_embedding_dim, document_embedding_dim, nb_tags):
+    word_lstm_model = Sequential()
+    word_lstm_model.add(Masking(input_shape=(nb_words, word_embedding_dim)))
+    word_lstm = LSTM(output_dim=sentence_embedding_dim, input_shape=(None, word_embedding_dim),
+                     activation=u'tanh', inner_activation=u'hard_sigmoid')
+    word_lstm_model.add(word_lstm)
+    sentence_lstm_model = Sequential()
+    sentence_lstm_model.add(Masking(input_shape=(nb_sentence, sentence_embedding_dim)))
+    sentence_lstm = LSTM(output_dim=document_embedding_dim, input_shape=(None, sentence_embedding_dim),
+                         activation=u'tanh', inner_activation=u'hard_sigmoid')
+    sentence_lstm_model.add(sentence_lstm)
+    total_words = nb_words * nb_sentence
+    input_layer = Input(shape=(total_words,))
+    embedding_layer = \
+        Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights, trainable=True)(input_layer)
+    first_reshape = Reshape((nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
+    sentence_embeddings = TimeDistributed(word_lstm_model)(first_reshape)
+    document_embedding = sentence_lstm_model(sentence_embeddings)
+    output_layer = Dense(output_dim=nb_tags, input_shape=(document_embedding_dim,), activation=u'softmax',
+                         W_regularizer=l2(0.01))(document_embedding)
+
+    def masked_simplified_lstm_loss(y_true, y_pred):
+        return K.categorical_crossentropy(y_pred, y_true)
+
+    model = Model(input=input_layer, output=output_layer)
+    model.compile(loss=masked_simplified_lstm_loss, optimizer='rmsprop')
+    return model
 
 
 def gru_with_attention(nb_sentence, nb_words, dict_size, word_embedding_weights,
@@ -367,23 +367,40 @@ def get_lr_model(input_dim):
 
 LR_MODEL_WEIGHTS_PATH = os.path.join(os.path.dirname(__file__), u"../models/lr_weights.h5")
 
+CLASSIFY_MODEL = None
 
-def text_predict(trained_model, text, cutoff=10):
+
+def load_classify_model():
+    global CLASSIFY_MODEL, THRESHOLD_LSQ_COEFFICIENT
+    import refined_preprocessing
+    CLASSIFY_MODEL = new_model(refined_preprocessing.TagManager.REFINED_TAG_DICT_SIZE, baseline=True)
+    CLASSIFY_MODEL.load_weights(os.path.join(os.path.dirname(__file__),
+                                             u'../models/model_weights_pure_lstm_nonstatic.h5'))
+    THRESHOLD_LSQ_COEFFICIENT = numpy.loadtxt(
+        open(os.path.join(os.path.dirname(__file__), u'../models/threshold_lsq_coefficient_pure_lstm_nonstatic.txt')))
+
+
+def classify(text, cutoff=5):
+    import refined_preprocessing
     # replace all the \n to make the whole text a single paragraph
     structure = nlp_utils.split_into_paragraph_sentence_token(text.replace(u'\n', u''))
-    assert len(structure) != 0 % u'text empty!(ignore stopwords)'
+    assert len(structure) != 0, u'text empty!(ignore stopwords)'
     sentences = structure[0]
-    input_v = preprocessing.padding_document(sentences)
-    output_v = trained_model.predict([input_v])[0]
-    numpy.sort(output_v)
+    input_v = numpy.array(preprocessing.padding_document(sentences)).\
+        reshape(1, preprocessing.MAX_SENTENCES_IN_DOCUMENT * preprocessing.MAX_WORDS_IN_SENTENCE)
+    output_v = CLASSIFY_MODEL.predict([input_v])[0]
+    sorted_output_v = numpy.sort(output_v)
+    arg_sorted_output = numpy.argsort(output_v)
     idx = len(output_v) - 1
     tags = []
     while True:
         if idx < 0 or len(output_v) - idx > cutoff:
             break
-        tags.append((idx, output_v[idx]))
+        tags.append((arg_sorted_output[idx], sorted_output_v[idx]))
         idx -= 1
-    return [(preprocessing.TAG_IDX_TO_NAME[idx], confidence) for idx, confidence in tags]
+    ans = [(refined_preprocessing.TagManager.IDX_TO_REFINED_TAG[idx], confidence) for idx, confidence in tags]
+    ans.sort(lambda x, y: cmp(x[1], y[1]), reverse=True)
+    return ans
 
 
 THRESHOLD_LSQ_COEFFICIENT_PATH = os.path.join(os.path.dirname(__file__), u'../models/threshold_lsq_coefficient.txt')
@@ -422,9 +439,11 @@ def main():
     import refined_preprocessing
     model = new_model(1)
     # model.save_weights(u'../models/model_weights.h5')
-    print (model.predict(numpy.ones(shape=(1, 1536))))
+    print (model.predict(numpy.array([1] * 1536).reshape(1, 1536)))
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    load_classify_model()
+    print (classify(u'football'))
     pass

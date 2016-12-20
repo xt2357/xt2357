@@ -37,7 +37,7 @@ def lstm_doc_embedding(nb_sentence, nb_words, dict_size, word_embedding_weights,
     input_layer = Input(shape=(total_words,))
     embedding_layer = \
         Embedding(dict_size, word_embedding_dim, weights=word_embedding_weights,
-                  trainable=False, name=u'word_embedding')(input_layer)
+                  trainable=True, name=u'word_embedding')(input_layer)
     first_reshape = Reshape((nb_sentence, nb_words, word_embedding_dim))(embedding_layer)
     sentence_embeddings = TimeDistributed(word_lstm_model)(first_reshape)
     document_embedding = sentence_lstm_model(sentence_embeddings)
@@ -163,6 +163,8 @@ class ModelManager(object):
 
     @classmethod
     def get_predict_result(cls, big_tag, x):
+        if len(cls.ALL_MODELS) == 0:
+            cls.load_the_whole_model()
         return cls.ALL_MODELS[big_tag].predict(x)
 
 
@@ -184,7 +186,7 @@ class Node(object):
         if self.search_end:
             return []
         else:
-            predict_results = ModelManager.get_predict_result(self.path[-1], self.x) \
+            predict_results = ModelManager.get_predict_result(self.path[-1], self.x)[0] \
                 if predict_results is None else predict_results
             arg_sorted_predict = numpy.argsort(predict_results)
             ranks = [0] * len(arg_sorted_predict)
@@ -245,6 +247,31 @@ def predict_eval_data_based_on_a_star(x):
             for node in front_node.expand(predict_results=predicts[front_node.path[-1]][i]):
                 heapq.heappush(q, node)
     return pred_lists
+
+
+def load_classify_model():
+    ModelManager.load_the_whole_model()
+
+
+def classify(text):
+    structure = nlp_utils.split_into_paragraph_sentence_token(text.replace(u'\n', u''))
+    assert len(structure) != 0, u'text empty!(ignore stopwords)'
+    sentences = structure[0]
+    input_v = preprocessing.padding_document(sentences)
+    input_v = numpy.array(input_v).\
+        reshape(1, preprocessing.MAX_WORDS_IN_SENTENCE * preprocessing.MAX_SENTENCES_IN_DOCUMENT)
+    pred_tags = []
+    # a-star shortest path finding
+    q = []
+    heapq.heappush(q, Node(input_v, u'all_big_tags', 0.0))
+    while len(q) > 0:
+        front_node = heapq.heappop(q)
+        if front_node.search_end:
+            pred_tags = [tag for tag in front_node.path[1:]]
+            break
+        for node in front_node.expand():
+            heapq.heappush(q, node)
+    return pred_tags
 
 
 def read_refined_eval_y_for_evaluation(size=None):
@@ -327,6 +354,7 @@ if __name__ == '__main__':
     # print refined_preprocessing.TagManager.SEQ_TO_SUB_TAG
     # print refined_preprocessing.TagManager.SEQ_TO_BIG_TAG
     # print refined_preprocessing.TagManager.IDX_TO_REFINED_TAG
+    print (classify(u'football'))
     if sys.argv[1] == u'train':
         train(from_scratch=bool(sys.argv[2] if len(sys.argv) >= 3 else False))
     elif sys.argv[1] == u'eval':
