@@ -373,11 +373,13 @@ CLASSIFY_MODEL = None
 def load_classify_model():
     global CLASSIFY_MODEL, THRESHOLD_LSQ_COEFFICIENT
     import refined_preprocessing
+    print (u'loading ranking model..')
     CLASSIFY_MODEL = new_model(refined_preprocessing.TagManager.REFINED_TAG_DICT_SIZE, baseline=True)
     CLASSIFY_MODEL.load_weights(os.path.join(os.path.dirname(__file__),
                                              u'../models/model_weights_pure_lstm_nonstatic.h5'))
     THRESHOLD_LSQ_COEFFICIENT = numpy.loadtxt(
         open(os.path.join(os.path.dirname(__file__), u'../models/threshold_lsq_coefficient_pure_lstm_nonstatic.txt')))
+    print (u'loading ranking model done..')
 
 
 def classify(text, cutoff=5):
